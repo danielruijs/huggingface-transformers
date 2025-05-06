@@ -5,10 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "datasets>=3.5.1",
     "ipykernel>=6.29.5",
     "kagglehub>=0.3.12",
     "matplotlib>=3.10.1",
     "pycocotools>=2.0.8",
+    "scipy>=1.15.2",
     "torch>=2.7.0",
-    "transformers>=4.51.3",
+    "transformers[torch]>=4.51.3",
 ]

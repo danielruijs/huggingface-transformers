@@ -53,7 +53,7 @@ for set in ["train", "test", "valid"]:
             width, height = img.size
 
         coco["images"].append(
-            {"id": image_id, "file_name": filename, "width": width, "height": height}
+            {"id": image_id, "file_name": image_path, "width": width, "height": height}
         )
 
         # Load label

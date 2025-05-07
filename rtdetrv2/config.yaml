@@ -1,0 +1,27 @@
+# Model checkpoint
+checkpoint: "PekingU/rtdetr_v2_r18vd"
+# Alternative checkpoints (see https://huggingface.co/PekingU):
+# checkpoint = "PekingU/rtdetr_v2_r34vd"
+# checkpoint = "PekingU/rtdetr_v2_r50vd"
+# checkpoint = "PekingU/rtdetr_v2_r101vd"
+
+# Dataset paths
+# ann is the COCO annototation file and img is the image directory
+train_ann: "../data/train/cocoann.json"
+train_img: "../data/train/images"
+valid_ann: "../data/valid/cocoann.json"
+valid_img: "../data/valid/images"
+test_ann: "../data/test/cocoann.json"
+test_img: "../data/test/images"
+
+# Classes in the dataset, the indexes of the classes should match the COCO dataset
+classes: ['Green Light', 'Red Light', 'Speed Limit 10', 'Speed Limit 100', 'Speed Limit 110', 'Speed Limit 120', 'Speed Limit 20', 'Speed Limit 30', 'Speed Limit 40', 'Speed Limit 50', 'Speed Limit 60', 'Speed Limit 70', 'Speed Limit 80', 'Speed Limit 90', 'Stop']
+
+# Training parameters
+image_width: 416
+image_height: 416
+per_device_train_batch_size: 4
+per_device_eval_batch_size: 4
+num_train_epochs: 10
+output_dir: "./rtdetrv2_finetuned"
+logging_dir: "./logs"

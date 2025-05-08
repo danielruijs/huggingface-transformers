@@ -1,12 +1,30 @@
-# This script coverts the https://www.kaggle.com/datasets/pkdarabi/cardetection/data dataset to the COCO format.
+# This script downloads and coverts the https://www.kaggle.com/datasets/pkdarabi/cardetection/data dataset to the COCO format.
 
 import kagglehub
 import os
 import json
+import shutil
 from PIL import Image
 
 data_path = kagglehub.dataset_download("pkdarabi/cardetection")
-data_path = os.path.join(data_path, "car")
+data_path = os.path.join(data_path)
+print(f"Dataset downloaded to {data_path}")
+
+# Move the dataset
+script_dir = os.path.dirname(os.path.abspath(__file__))
+new_path = os.path.normpath(os.path.join(script_dir, "../data"))
+if not os.path.exists(new_path):
+    os.makedirs(new_path)
+source = os.path.join(data_path, "car")
+for item in os.listdir(source):
+    shutil.move(os.path.join(source, item), new_path)
+print(f"Dataset moved to {new_path}")
+
+shutil.rmtree(data_path, ignore_errors=True)
+print(f"Removed original dataset at {data_path}")
+
+data_path = new_path
+
 class_names = [
     "Green Light",
     "Red Light",
@@ -26,6 +44,8 @@ class_names = [
 ]
 class_map = {i: name for i, name in enumerate(class_names)}
 
+print("Creating coco annotations...")
+# Create coco annotations for train, test, and valid sets
 for set in ["train", "test", "valid"]:
     image_dir = os.path.join(data_path, f"{set}/images")
     label_dir = os.path.join(data_path, f"{set}/labels")

@@ -1,3 +1,5 @@
+# Note: All paths are relative to the config file
+
 # Model checkpoint
 checkpoint: "PekingU/rtdetr_v2_r18vd"
 # Alternative checkpoints (see https://huggingface.co/PekingU):
@@ -23,5 +25,8 @@ image_height: 416
 per_device_train_batch_size: 4
 per_device_eval_batch_size: 4
 num_train_epochs: 10
-output_dir: "./rtdetrv2_finetuned"
-logging_dir: "./logs"
+output_dir: "./rtdetrv2_finetuned" # Directory to save the model checkpoints.
+logging_dir: "./logs" # TensorBoard logging directory.
+save_total_limit: 1 # Limit the total amount of checkpoints.
+fp16: False # Whether to use fp16 16-bit (mixed) precision training instead of 32-bit training.
+fp16_full_eval: False # Whether to use full float16 evaluation instead of 32-bit. This will be faster and save memory but can harm metric values.

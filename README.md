@@ -22,7 +22,7 @@ source .venv/bin/activate
 
 Install the required packages:
 ```bash
-pip install transformers[torch] pycocotools scipy
+pip install transformers[torch] pycocotools scipy tensorboard
 ```
 
 # Example dataset

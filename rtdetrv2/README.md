@@ -41,3 +41,15 @@ Then run the training script:
 ```bash
 sh train.sh
 ```
+Note that training is done with nohup, so the script will continue running even if you close the terminal. To remove logs and checkpoints from previous runs when starting training, pass the `--clear` flag:
+```bash
+sh train.sh --clear
+```
+
+## Logging
+
+Logs and checkpoints are saved in the `logs` directory. You can monitor the training process using TensorBoard. To do this, run the following command in a separate terminal:
+```bash
+tensorboard --logdir=logs --port=6006
+```
+Then open your web browser and go to [http://localhost:6006](http://localhost:6006) to view the TensorBoard dashboard.

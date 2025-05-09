@@ -15,6 +15,8 @@ from pycocotools.cocoeval import COCOeval
 from functools import partial
 from dataclasses import dataclass
 import argparse
+import albumentations as A
+import numpy as np
 
 
 class COCODataset(Dataset):
@@ -26,12 +28,13 @@ class COCODataset(Dataset):
         image_processor: Image processor for preprocessing images.
     """
 
-    def __init__(self, coco_json_path, image_root, image_processor):
+    def __init__(self, coco_json_path, image_root, image_processor, transforms=None):
         with open(coco_json_path, "r") as f:
             coco = json.load(f)
 
         self.image_root = image_root
         self.image_processor = image_processor
+        self.transforms = transforms
 
         # Map image_id to file_name
         self.images = {img["id"]: img for img in coco["images"]}
@@ -55,7 +58,30 @@ class COCODataset(Dataset):
         anns = self.annotations.get(image_id, [])
 
         img_path = os.path.join(self.image_root, img_info["file_name"])
-        image = Image.open(img_path).convert("RGB")
+        image = np.array(Image.open(img_path).convert("RGB"))
+
+        # Apply augmentations
+        if self.transforms:
+            bboxes = [ann["bbox"] for ann in anns]
+            category_ids = [ann["category_id"] for ann in anns]
+
+            augmented = self.transforms(
+                image=image, bboxes=bboxes, category_ids=category_ids
+            )
+
+            image = augmented["image"]
+            # Reconstruct anns from transformed bboxes
+            anns = [
+                {
+                    "bbox": bbox,
+                    "category_id": cids,
+                    "image_id": image_id,
+                    "area": float(bbox[2] * bbox[3]),
+                }
+                for bbox, cids in zip(augmented["bboxes"], augmented["category_ids"])
+            ]
+
+        image = Image.fromarray(image)
 
         # Apply image_processor
         encoding = self.image_processor(
@@ -65,9 +91,7 @@ class COCODataset(Dataset):
         )
 
         encoding["pixel_values"] = encoding["pixel_values"].squeeze(0)
-
         encoding["labels"] = encoding["labels"][0]
-
         encoding["labels"]["image_id"] = encoding["labels"]["image_id"].squeeze(0)
 
         return encoding
@@ -198,19 +222,20 @@ def main(args, config):
         checkpoint, num_labels=len(classes), ignore_mismatched_sizes=True
     )
 
-    # Load the datasets
+    # Load the training dataset
     train_dataset = COCODataset(
         coco_json_path=config["train_ann"],
         image_root=config["train_img"],
         image_processor=image_processor,
+        transforms=build_transforms(config),
     )
 
+    # Load the validation dataset
     val_dataset = COCODataset(
         coco_json_path=config["valid_ann"],
         image_root=config["valid_img"],
         image_processor=image_processor,
     )
-
     size_map = create_size_map(config["valid_ann"])
 
     # Set up training arguments
@@ -279,6 +304,17 @@ def main(args, config):
 def load_config(config_path):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
+
+
+def build_transforms(config):
+    transforms_list = []
+    for aug in config.get("augmentations", []):
+        aug_class = getattr(A, aug["name"])
+        transforms_list.append(aug_class(**aug["params"]))
+    return A.Compose(
+        transforms_list,
+        bbox_params=A.BboxParams(format="coco", label_fields=["category_ids"]),
+    )
 
 
 def parse_args():

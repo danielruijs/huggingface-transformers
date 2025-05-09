@@ -33,3 +33,17 @@ logging_steps: 0.01 # Number of update steps between two logs. If smaller than 1
 
 fp16: True # Whether to use fp16 16-bit (mixed) precision training instead of 32-bit training.
 fp16_full_eval: True # Whether to use full float16 evaluation instead of 32-bit. This will be faster and save memory but can harm metric values.
+
+# See https://pypi.org/project/albumentations/ for more augmentations
+augmentations:
+  - name: RandomResizedCrop
+    params: { size: [416, 416], scale: [0.5, 1.0], p: 0.1 }
+
+  - name: RandomBrightnessContrast
+    params: { p: 0.2 }
+
+  - name: GaussNoise
+    params: { p: 0.1 }
+
+  - name: GaussianBlur
+    params: { p: 0.1 }

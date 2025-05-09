@@ -115,19 +115,19 @@ class ModelOutput:
     pred_boxes: torch.Tensor
 
 
-def compute_metrics(eval_pred, image_processor, cocoann_file, size_map):
+def compute_metrics(eval_pred, image_processor, cocoann_file):
     """
     Compute metrics for evaluation using COCOeval.
     Args:
         eval_pred: Tuple of predictions and labels.
         image_processor: Image processor for post-processing.
         cocoann_file: Path to the COCO annotations file.
-        size_map: Dictionary mapping image IDs to their sizes.
     Returns:
         dict: A dictionary containing evaluation metrics.
     """
     predictions, labels = eval_pred.predictions, eval_pred.label_ids
 
+    size_map = create_size_map(cocoann_file=cocoann_file)
     image_sizes = []
     for batch in labels:
         batch_image_sizes = [size_map[int(lbl["image_id"])] for lbl in batch]
@@ -236,7 +236,6 @@ def main(args, config):
         image_root=config["valid_img"],
         image_processor=image_processor,
     )
-    size_map = create_size_map(config["valid_ann"])
 
     # Set up training arguments
     output_dir = os.path.join(config["output_dir"], os.path.basename(checkpoint))
@@ -271,7 +270,6 @@ def main(args, config):
             compute_metrics,
             image_processor=image_processor,
             cocoann_file=config["valid_ann"],
-            size_map=size_map,
         ),
         data_collator=collate_fn,
     )
@@ -290,6 +288,11 @@ def main(args, config):
             coco_json_path=config["test_ann"],
             image_root=config["test_img"],
             image_processor=image_processor,
+        )
+        trainer.compute_metrics = partial(
+            compute_metrics,
+            image_processor=image_processor,
+            cocoann_file=config["test_ann"],
         )
 
         results = trainer.evaluate(eval_dataset=test_dataset, metric_key_prefix="test")

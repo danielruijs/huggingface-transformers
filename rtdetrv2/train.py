@@ -202,12 +202,14 @@ def collate_fn(batch):
 
 
 def main(args, config):
+    output_dir = config["output_dir"]
+    logging_dir = config["logging_dir"]
     if args.clear:
         # Clear previous outputs
-        if os.path.exists(config["output_dir"]):
-            os.system(f"rm -rf {config['output_dir']}")
-        if os.path.exists(config["logging_dir"]):
-            os.system(f"rm -rf {config['logging_dir']}")
+        if os.path.exists(output_dir):
+            os.system(f"rm -rf {output_dir}")
+        if os.path.exists(logging_dir):
+            os.system(f"rm -rf {logging_dir}")
         print("Cleared logs and checkpoints")
 
     # Load image processor and pre-trained model
@@ -238,15 +240,20 @@ def main(args, config):
     )
 
     # Set up training arguments
-    output_dir = os.path.join(config["output_dir"], os.path.basename(checkpoint))
+    output_dir_run = os.path.join(
+        config["output_dir"], os.path.basename(checkpoint), args.name
+    )
+    logging_dir_run = os.path.join(
+        config["logging_dir"], os.path.basename(checkpoint), args.name
+    )
     training_args = TrainingArguments(
         num_train_epochs=config["num_train_epochs"],
         per_device_train_batch_size=config["per_device_train_batch_size"],
         per_device_eval_batch_size=config["per_device_eval_batch_size"],
-        output_dir=output_dir,
+        output_dir=output_dir_run,
         logging_strategy="steps",
         logging_steps=config["logging_steps"],
-        logging_dir=os.path.join(config["logging_dir"], os.path.basename(checkpoint)),
+        logging_dir=logging_dir_run,
         report_to=["tensorboard"],
         eval_strategy="epoch",
         save_strategy="epoch",
@@ -278,7 +285,7 @@ def main(args, config):
     trainer.train()
 
     # Save the model
-    best_model_dir = os.path.join(output_dir, "best_model")
+    best_model_dir = os.path.join(output_dir_run, "best_model")
     trainer.save_model(best_model_dir)
     print(f"Model saved to {best_model_dir}")
 
@@ -325,6 +332,7 @@ def parse_args():
     parser.add_argument(
         "--clear", action="store_true", help="Clear logs and checkpoints"
     )
+    parser.add_argument("--name", type=str, default="", help="Name of the experiment")
     return parser.parse_args()
 
 

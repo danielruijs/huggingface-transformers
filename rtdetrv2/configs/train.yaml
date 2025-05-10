@@ -33,12 +33,16 @@ fp16: True # Whether to use fp16 16-bit (mixed) precision training instead of 32
 fp16_full_eval: True # Whether to use full float16 evaluation instead of 32-bit. This will be faster and save memory but can harm metric values.
 
 # See https://albumentations.ai/docs/api-reference/ for more augmentations
+no_aug_epochs: 5 # Number of epochs at the end without augmentation
 augmentations:
-  - name: RandomResizedCrop
-    params: { size: [416, 416], scale: [0.5, 1.0], p: 0.2 }
+  - name: RandomSizedBBoxSafeCrop
+    params: { height: 416, width: 416, p: 0.1 }
 
   - name: RandomBrightnessContrast
-    params: { p: 0.2 }
+    params: { p: 0.1 }
 
-  - name: GaussianBlur
+  - name: MotionBlur
+    params: { blur_limit: [3, 3], p: 0.1 }
+
+  - name: CoarseDropout
     params: { p: 0.1 }

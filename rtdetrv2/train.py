@@ -3,6 +3,7 @@ from transformers import (
     RTDetrV2ForObjectDetection,
     TrainingArguments,
     Trainer,
+    TrainerCallback,
 )
 import torch
 import yaml
@@ -108,6 +109,22 @@ def collate_fn(batch):
     }
 
 
+class AugmentationSwitcher(TrainerCallback):
+    def __init__(self, dataset, num_train_epochs, no_aug_epochs):
+        self.dataset = dataset
+        self.num_train_epochs = num_train_epochs
+        self.no_aug_epochs = no_aug_epochs
+
+    def on_epoch_begin(self, args, state, control, **kwargs):
+        if (
+            state.epoch >= (self.num_train_epochs - self.no_aug_epochs)
+            and self.dataset.transforms is not None
+        ):
+            print("Disabling augmentations")
+            self.dataset.transforms = None
+        print("Transforms:", self.dataset.transforms)
+
+
 def main(args, config):
     output_dir = config["output_dir"]
     logging_dir = config["logging_dir"]
@@ -184,15 +201,21 @@ def main(args, config):
             cocoann_file=config["valid_ann"],
         ),
         data_collator=collate_fn,
+        callbacks=[
+            AugmentationSwitcher(
+                train_dataset, config["num_train_epochs"], config["no_aug_epochs"]
+            )
+        ],
     )
 
     # Start training
     trainer.train()
 
-    # Save the model
+    # Save the model and image processor
     best_model_dir = os.path.join(output_dir_run, "best_model")
     trainer.save_model(best_model_dir)
-    print(f"Model saved to {best_model_dir}")
+    image_processor.save_pretrained(best_model_dir)
+    print(f"Model and image processor saved to {best_model_dir}")
 
     # Evaluate on test set
     if "test_ann" in config:
@@ -216,6 +239,16 @@ def main(args, config):
     print("Training and evaluation completed.")
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, required=True, help="Path to config file")
+    parser.add_argument(
+        "--clear", action="store_true", help="Clear logs and checkpoints"
+    )
+    parser.add_argument("--name", type=str, default="", help="Name of the experiment")
+    return parser.parse_args()
+
+
 def load_config(config_path):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
@@ -232,16 +265,7 @@ def build_transforms(config):
     )
 
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--clear", action="store_true", help="Clear logs and checkpoints"
-    )
-    parser.add_argument("--name", type=str, default="", help="Name of the experiment")
-    return parser.parse_args()
-
-
 if __name__ == "__main__":
-    config = load_config(config_path="config.yaml")
     args = parse_args()
+    config = load_config(config_path=args.config)
     main(args, config)

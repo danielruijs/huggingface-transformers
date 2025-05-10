@@ -39,7 +39,7 @@ cd rtdetrv2
 
 Then run the training script:
 ```bash
-sh train.sh
+sh train.sh --config path/to/config.yaml
 ```
 
 Note that training is done with nohup, so the script will continue running even if you close the terminal. The following flags can be passed to the training script:

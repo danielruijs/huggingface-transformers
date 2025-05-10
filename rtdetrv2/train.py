@@ -23,20 +23,21 @@ class COCODataset(Dataset):
     """
     Custom dataset class for loading COCO format datasets.
     Args:
-        coco_json_path (str): Path to the COCO JSON file.
-        image_root (str): Directory containing the images.
+        cocoann_file: Path to the COCO annotations file.
         image_processor: Image processor for preprocessing images.
+        image_root: Directory containing the images. Can be omitted if the annotation file contains full paths to the images.
+        transforms: Albumentations transforms for data augmentation.
     """
 
-    def __init__(self, coco_json_path, image_root, image_processor, transforms=None):
-        with open(coco_json_path, "r") as f:
+    def __init__(self, cocoann_file, image_processor, image_root="", transforms=None):
+        with open(cocoann_file, "r") as f:
             coco = json.load(f)
 
         self.image_root = image_root
         self.image_processor = image_processor
         self.transforms = transforms
 
-        # Map image_id to file_name
+        # Map image_id to image info
         self.images = {img["id"]: img for img in coco["images"]}
 
         # Group annotations by image_id
@@ -58,10 +59,11 @@ class COCODataset(Dataset):
         anns = self.annotations.get(image_id, [])
 
         img_path = os.path.join(self.image_root, img_info["file_name"])
-        image = np.array(Image.open(img_path).convert("RGB"))
+        image = Image.open(img_path).convert("RGB")
 
         # Apply augmentations
         if self.transforms:
+            image = np.array(image)
             bboxes = [ann["bbox"] for ann in anns]
             category_ids = [ann["category_id"] for ann in anns]
 
@@ -69,7 +71,7 @@ class COCODataset(Dataset):
                 image=image, bboxes=bboxes, category_ids=category_ids
             )
 
-            image = augmented["image"]
+            image = Image.fromarray(augmented["image"])
             # Reconstruct anns from transformed bboxes
             anns = [
                 {
@@ -80,8 +82,6 @@ class COCODataset(Dataset):
                 }
                 for bbox, cids in zip(augmented["bboxes"], augmented["category_ids"])
             ]
-
-        image = Image.fromarray(image)
 
         # Apply image_processor
         encoding = self.image_processor(
@@ -103,10 +103,24 @@ def create_size_map(cocoann_file):
     Args:
         cocoann_file: Path to the COCO annotations file.
     Returns:
-        dict: A dictionary mapping image IDs to their sizes (height, width).
+        dict: A dictionary mapping image IDs to the image sizes (height, width).
     """
     coco = COCO(cocoann_file)
     return {img["id"]: (img["height"], img["width"]) for img in coco.dataset["images"]}
+
+
+def get_classes_from_coco(cocoann_file):
+    """
+    Get class names from the COCO annotations file.
+    Args:
+        cocoann_file: Path to the COCO annotations file.
+    Returns:
+        list: A list of class names.
+    """
+    coco = COCO(cocoann_file)
+    cats = sorted(coco.dataset["categories"], key=lambda c: c["id"])
+    classes = [c["name"] for c in cats]
+    return classes
 
 
 @dataclass
@@ -212,9 +226,11 @@ def main(args, config):
             os.system(f"rm -rf {logging_dir}")
         print("Cleared logs and checkpoints")
 
+    # Get classes from COCO annotations
+    classes = get_classes_from_coco(config["train_ann"])
+
     # Load image processor and pre-trained model
     checkpoint = config["checkpoint"]
-    classes = config["classes"]
     image_processor = RTDetrImageProcessor.from_pretrained(
         checkpoint,
         do_resize=True,
@@ -226,26 +242,22 @@ def main(args, config):
 
     # Load the training dataset
     train_dataset = COCODataset(
-        coco_json_path=config["train_ann"],
-        image_root=config["train_img"],
+        cocoann_file=config["train_ann"],
         image_processor=image_processor,
+        image_root=config.get("train_img", ""),
         transforms=build_transforms(config),
     )
 
     # Load the validation dataset
     val_dataset = COCODataset(
-        coco_json_path=config["valid_ann"],
-        image_root=config["valid_img"],
+        cocoann_file=config["valid_ann"],
         image_processor=image_processor,
+        image_root=config.get("valid_img", ""),
     )
 
     # Set up training arguments
-    output_dir_run = os.path.join(
-        config["output_dir"], os.path.basename(checkpoint), args.name
-    )
-    logging_dir_run = os.path.join(
-        config["logging_dir"], os.path.basename(checkpoint), args.name
-    )
+    output_dir_run = os.path.join(output_dir, os.path.basename(checkpoint), args.name)
+    logging_dir_run = os.path.join(logging_dir, os.path.basename(checkpoint), args.name)
     training_args = TrainingArguments(
         num_train_epochs=config["num_train_epochs"],
         per_device_train_batch_size=config["per_device_train_batch_size"],
@@ -292,9 +304,9 @@ def main(args, config):
     # Evaluate on test set
     if "test_ann" in config:
         test_dataset = COCODataset(
-            coco_json_path=config["test_ann"],
-            image_root=config["test_img"],
+            cocoann_file=config["test_ann"],
             image_processor=image_processor,
+            image_root=config.get("test_img", ""),
         )
         trainer.compute_metrics = partial(
             compute_metrics,

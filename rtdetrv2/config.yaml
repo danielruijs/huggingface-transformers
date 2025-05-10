@@ -1,4 +1,4 @@
-# Note: All paths are relative to the config file
+# Note: All paths are relative to the directory where the script is run.
 
 # Model checkpoint
 checkpoint: "PekingU/rtdetr_v2_r18vd"
@@ -9,15 +9,13 @@ checkpoint: "PekingU/rtdetr_v2_r18vd"
 
 # Dataset paths
 # ann is the COCO annototation file and img is the image directory
+# The image directories be omitted if the annotation files contains full paths to the images.
 train_ann: "../data/train/cocoann.json"
 train_img: "../data/train/images"
 valid_ann: "../data/valid/cocoann.json"
 valid_img: "../data/valid/images"
 test_ann: "../data/test/cocoann.json" # Optional, if not provided, validation set will be used for final evaluation
 test_img: "../data/test/images" # Optional, if not provided, validation set will be used for final evaluation
-
-# Classes in the dataset, the indexes of the classes should match the COCO dataset
-classes: ['Green Light', 'Red Light', 'Speed Limit 10', 'Speed Limit 100', 'Speed Limit 110', 'Speed Limit 120', 'Speed Limit 20', 'Speed Limit 30', 'Speed Limit 40', 'Speed Limit 50', 'Speed Limit 60', 'Speed Limit 70', 'Speed Limit 80', 'Speed Limit 90', 'Stop']
 
 # Training parameters
 image_width: 416
@@ -34,16 +32,13 @@ logging_steps: 0.01 # Number of update steps between two logs. If smaller than 1
 fp16: True # Whether to use fp16 16-bit (mixed) precision training instead of 32-bit training.
 fp16_full_eval: True # Whether to use full float16 evaluation instead of 32-bit. This will be faster and save memory but can harm metric values.
 
-# See https://pypi.org/project/albumentations/ for more augmentations
+# See https://albumentations.ai/docs/api-reference/ for more augmentations
 augmentations:
   - name: RandomResizedCrop
-    params: { size: [416, 416], scale: [0.5, 1.0], p: 0.1 }
+    params: { size: [416, 416], scale: [0.5, 1.0], p: 0.2 }
 
   - name: RandomBrightnessContrast
     params: { p: 0.2 }
-
-  - name: GaussNoise
-    params: { p: 0.1 }
 
   - name: GaussianBlur
     params: { p: 0.1 }

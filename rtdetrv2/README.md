@@ -57,7 +57,13 @@ tensorboard --logdir=logs --port=6006
 Then open your web browser and go to [http://localhost:6006](http://localhost:6006) to view the TensorBoard dashboard.
 
 # Inference
-To run inference, modify the `inference.yaml` file to set the model checkpoint and the paths to the folder with the images you want to run inference on.
+To run inference, modify the `inference.yaml` file to set the model checkpoint and the paths to the folder with the images you want to run inference on. Then run the inference script:
 ```bash
 python inference.py --config path/to/inference/config.yaml
+```
+
+# Evaluation
+To evaluate the model, modify the `evaluation.yaml` file to set the model checkpoint and the path to the COCO format dataset to evaluate on. Then run the evaluation script:
+```bash
+python evaluation.py --config path/to/eval/config.yaml
 ```

@@ -14,6 +14,7 @@ def run_inference(
     image_processor,
     model,
     dataset,
+    threshold,
 ):
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
@@ -39,7 +40,7 @@ def run_inference(
         results = image_processor.post_process_object_detection(
             outputs,
             target_sizes=batch_labels["size"],
-            threshold=0.01,
+            threshold=threshold,
         )
         end_post = time.perf_counter()
 
@@ -117,6 +118,7 @@ def main(config):
         image_processor=image_processor,
         model=model,
         dataset=dataset,
+        threshold=config["threshold"],
     )
 
     _ = compute_metrics(

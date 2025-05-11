@@ -109,7 +109,7 @@ def main(config):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     model_dir = os.path.join(script_dir, config["model_dir"])
     cocoann_file = os.path.join(script_dir, config["cocoann_file"])
-    img_dir = os.path.join(script_dir, config["img_dir"])
+    img_dir = os.path.join(script_dir, config["img_dir"]) if "img_dir" in config else ""
 
     image_processor = RTDetrImageProcessor.from_pretrained(model_dir)
     model = RTDetrV2ForObjectDetection.from_pretrained(model_dir).to(device)

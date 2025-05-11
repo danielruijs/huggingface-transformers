@@ -34,3 +34,14 @@ To download the dataset, install the kagglehub package and then run the followin
 pip install kagglehub
 python scripts/get_example_dataset.py
 ```
+
+# Results
+
+The following table summarizes the models´ performance on the test set of the example dataset. The inference time (forward pass time) is measured on an NVIDIA T4 GPU with a batch size of 1. All models are trained for 30 epochs.
+
+### RT-DETRv2
+| Checkpoint |    AP   |   APs   |   APm   |   APl   | Inference Time (ms) |
+|-----|:-----:|:-----:|:-----:|:-----:|:-----:|
+|`rtdetr_v2_r18vd`| 0.302 | 0.102 | 0.345 | 0.427 | 20.1 |
+|`rtdetr_v2_r34vd`| 0.557 | 0.237 | 0.510 | 0.780 | 25.2 |
+|`rtdetr_v2_r50vd`| 0.746 | 0.401 | 0.808 | 0.891 | 32.4 |

@@ -1,5 +1,5 @@
 # Training
-Modify ```config.yaml``` to set the model checkpoint, dataset paths and training parameters. A dataset with the COCO format is required. The dataset should consist of a folder with images and a JSON file with annotations. The JSON file should have the following structure:
+Modify `configs/train.yaml` to set the model checkpoint, dataset paths and training parameters. A dataset with the COCO format is required. The dataset should consist of a folder with images and a JSON file with annotations. The JSON file should have the following structure:
 ```
 {
   "images": [
@@ -57,13 +57,13 @@ tensorboard --logdir=logs --port=6006
 Then open your web browser and go to [http://localhost:6006](http://localhost:6006) to view the TensorBoard dashboard.
 
 # Inference
-To run inference, modify the `inference.yaml` file to set the model checkpoint and the paths to the folder with the images you want to run inference on. Then run the inference script:
+To run inference, modify the `configs/inference.yaml` file to set the model checkpoint and the paths to the folder with the images you want to run inference on. Then run the inference script:
 ```bash
 python inference.py --config path/to/inference/config.yaml
 ```
 
 # Evaluation
-To evaluate the model, modify the `evaluation.yaml` file to set the model checkpoint and the path to the COCO format dataset to evaluate on. Then run the evaluation script:
+To evaluate the model, modify the `configs/evaluation.yaml` file to set the model checkpoint and the path to the COCO format dataset to evaluate on. Then run the evaluation script:
 ```bash
 python evaluation.py --config path/to/eval/config.yaml
 ```

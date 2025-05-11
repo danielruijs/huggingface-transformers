@@ -2,6 +2,7 @@ import torch
 import yaml
 import argparse
 import time
+import os
 from tqdm import tqdm
 from transformers import RTDetrImageProcessor, RTDetrV2ForObjectDetection
 from pycocotools.coco import COCO
@@ -104,14 +105,19 @@ def main(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    model_dir = config["model_dir"]
+    # Resolve paths relative to script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    model_dir = os.path.join(script_dir, config["model_dir"])
+    cocoann_file = os.path.join(script_dir, config["cocoann_file"])
+    img_dir = os.path.join(script_dir, config["img_dir"])
+
     image_processor = RTDetrImageProcessor.from_pretrained(model_dir)
     model = RTDetrV2ForObjectDetection.from_pretrained(model_dir).to(device)
 
     dataset = COCODataset(
-        cocoann_file=config["cocoann_file"],
+        cocoann_file=cocoann_file,
         image_processor=image_processor,
-        image_root=config["img_dir"],
+        image_root=img_dir,
     )
 
     predictions, labels = run_inference(
@@ -122,7 +128,7 @@ def main(config):
     )
 
     _ = compute_metrics(
-        predictions=predictions, labels=labels, cocoann_file=config["cocoann_file"]
+        predictions=predictions, labels=labels, cocoann_file=cocoann_file
     )
 
 

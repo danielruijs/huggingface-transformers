@@ -1,5 +1,5 @@
 # This is a configuration file for evaluating the RTDETRv2 model.
-# Note: All paths are relative to the directory where the script is run.
+# Note: All paths are relative to the evaluation script's directory.
 
 model_dir: "./checkpoints/rtdetr_v2_r50vd/test/best_model" # Directory of the model and image processor
 img_dir: "../data/test/images" # Image directory. May be omitted if the annotation file contains full paths to the images.

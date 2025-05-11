@@ -50,14 +50,16 @@ def main(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    model_dir = config["model_dir"]
+    # Resolve paths relative to script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    model_dir = os.path.join(script_dir, config["model_dir"])
+    img_dir = os.path.join(script_dir, config["img_dir"])
+    output_dir = os.path.join(script_dir, config["output_dir"])
+    os.makedirs(output_dir, exist_ok=True)
+
     image_processor = RTDetrImageProcessor.from_pretrained(model_dir)
     model = RTDetrV2ForObjectDetection.from_pretrained(model_dir).to(device)
     classes = model.config.id2label
-
-    img_dir = config["img_dir"]
-    output_dir = config["output_dir"]
-    os.makedirs(output_dir, exist_ok=True)
 
     image_paths = [
         os.path.join(img_dir, img_file)

@@ -128,8 +128,24 @@ class AugmentationSwitcher(TrainerCallback):
 
 def main(args, config):
     checkpoint = config["checkpoint"]
-    output_dir = config["output_dir"]
-    logging_dir = config["logging_dir"]
+
+    # Resolve paths relative to script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_dir = os.path.join(script_dir, config["output_dir"])
+    logging_dir = os.path.join(script_dir, config["logging_dir"])
+    train_ann = os.path.join(script_dir, config["train_ann"])
+    valid_ann = os.path.join(script_dir, config["valid_ann"])
+    test_ann = os.path.join(script_dir, config.get("test_ann", ""))
+    train_img = (
+        os.path.join(script_dir, config["train_img"]) if "train_img" in config else ""
+    )
+    valid_img = (
+        os.path.join(script_dir, config["valid_img"]) if "valid_img" in config else ""
+    )
+    test_img = (
+        os.path.join(script_dir, config["test_img"]) if "test_img" in config else ""
+    )
+
     output_dir_run = os.path.join(output_dir, os.path.basename(checkpoint), args.name)
     logging_dir_run = os.path.join(logging_dir, os.path.basename(checkpoint), args.name)
     best_model_dir = os.path.join(output_dir_run, "best_model")
@@ -143,7 +159,7 @@ def main(args, config):
         print("Cleared logs and checkpoints")
 
     # Get classes from COCO annotations
-    classes = get_classes_from_coco(config["train_ann"])
+    classes = get_classes_from_coco(train_ann)
 
     # Load image processor and pre-trained model
     image_processor = RTDetrImageProcessor.from_pretrained(
@@ -161,17 +177,17 @@ def main(args, config):
 
     # Load the training dataset
     train_dataset = COCODataset(
-        cocoann_file=config["train_ann"],
+        cocoann_file=train_ann,
         image_processor=image_processor,
-        image_root=config.get("train_img", ""),
+        image_root=train_img,
         transforms=build_transforms(config),
     )
 
     # Load the validation dataset
     val_dataset = COCODataset(
-        cocoann_file=config["valid_ann"],
+        cocoann_file=valid_ann,
         image_processor=image_processor,
-        image_root=config.get("valid_img", ""),
+        image_root=valid_img,
     )
 
     # Set up training arguments
@@ -205,7 +221,7 @@ def main(args, config):
         compute_metrics=partial(
             compute_metrics,
             image_processor=image_processor,
-            cocoann_file=config["valid_ann"],
+            cocoann_file=valid_ann,
         ),
         data_collator=collate_fn,
         callbacks=[
@@ -225,14 +241,14 @@ def main(args, config):
     # Evaluate on test set
     if "test_ann" in config:
         test_dataset = COCODataset(
-            cocoann_file=config["test_ann"],
+            cocoann_file=test_ann,
             image_processor=image_processor,
-            image_root=config.get("test_img", ""),
+            image_root=test_img,
         )
         trainer.compute_metrics = partial(
             compute_metrics,
             image_processor=image_processor,
-            cocoann_file=config["test_ann"],
+            cocoann_file=test_ann,
         )
 
         results = trainer.evaluate(eval_dataset=test_dataset, metric_key_prefix="test")

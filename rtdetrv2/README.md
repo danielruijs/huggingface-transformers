@@ -39,12 +39,14 @@ cd rtdetrv2
 
 Then run the training script:
 ```bash
-sh train.sh --config path/to/config.yaml
+sh train.sh --config path/to/train/config.yaml
 ```
 
 Note that training is done with nohup, so the script will continue running even if you close the terminal. The following flags can be passed to the training script:
 - `--clear`: remove logs and checkpoints from previous runs when starting training.
 - `--name`: name of the training run, used to create directories for logs and checkpoints.
+
+The best model from training is saved in the `output_dir` directory specified in the config file. The image processor is saved in the same directory along with the model to be used for inference.
 
 ## Logging
 
@@ -53,3 +55,9 @@ Logs and checkpoints are saved in the `logs` directory. You can monitor the trai
 tensorboard --logdir=logs --port=6006
 ```
 Then open your web browser and go to [http://localhost:6006](http://localhost:6006) to view the TensorBoard dashboard.
+
+# Inference
+To run inference, modify the `inference.yaml` file to set the model checkpoint and the paths to the folder with the images you want to run inference on.
+```bash
+python inference.py --config path/to/inference/config.yaml
+```

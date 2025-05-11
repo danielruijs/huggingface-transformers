@@ -9,6 +9,7 @@ import torch
 import yaml
 import os
 import argparse
+import datetime
 import albumentations as A
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -122,12 +123,17 @@ class AugmentationSwitcher(TrainerCallback):
         ):
             print("Disabling augmentations")
             self.dataset.transforms = None
-        print("Transforms:", self.dataset.transforms)
+        print("\nTransforms:", self.dataset.transforms)
 
 
 def main(args, config):
+    checkpoint = config["checkpoint"]
     output_dir = config["output_dir"]
     logging_dir = config["logging_dir"]
+    output_dir_run = os.path.join(output_dir, os.path.basename(checkpoint), args.name)
+    logging_dir_run = os.path.join(logging_dir, os.path.basename(checkpoint), args.name)
+    best_model_dir = os.path.join(output_dir_run, "best_model")
+
     if args.clear:
         # Clear previous outputs
         if os.path.exists(output_dir):
@@ -140,7 +146,6 @@ def main(args, config):
     classes = get_classes_from_coco(config["train_ann"])
 
     # Load image processor and pre-trained model
-    checkpoint = config["checkpoint"]
     image_processor = RTDetrImageProcessor.from_pretrained(
         checkpoint,
         do_resize=True,
@@ -149,6 +154,10 @@ def main(args, config):
     model = RTDetrV2ForObjectDetection.from_pretrained(
         checkpoint, num_labels=len(classes), ignore_mismatched_sizes=True
     )
+    model.config.id2label = {i: cls for i, cls in enumerate(classes)}
+
+    # Save the image processor
+    image_processor.save_pretrained(best_model_dir)
 
     # Load the training dataset
     train_dataset = COCODataset(
@@ -166,8 +175,6 @@ def main(args, config):
     )
 
     # Set up training arguments
-    output_dir_run = os.path.join(output_dir, os.path.basename(checkpoint), args.name)
-    logging_dir_run = os.path.join(logging_dir, os.path.basename(checkpoint), args.name)
     training_args = TrainingArguments(
         num_train_epochs=config["num_train_epochs"],
         per_device_train_batch_size=config["per_device_train_batch_size"],
@@ -211,11 +218,9 @@ def main(args, config):
     # Start training
     trainer.train()
 
-    # Save the model and image processor
-    best_model_dir = os.path.join(output_dir_run, "best_model")
+    # Save best model
     trainer.save_model(best_model_dir)
-    image_processor.save_pretrained(best_model_dir)
-    print(f"Model and image processor saved to {best_model_dir}")
+    print(f"Best model saved to {best_model_dir}")
 
     # Evaluate on test set
     if "test_ann" in config:
@@ -245,7 +250,12 @@ def parse_args():
     parser.add_argument(
         "--clear", action="store_true", help="Clear logs and checkpoints"
     )
-    parser.add_argument("--name", type=str, default="", help="Name of the experiment")
+    parser.add_argument(
+        "--name",
+        type=str,
+        default=datetime.datetime.now().strftime("%Y%m%d-%H%M%S"),
+        help="Name of the experiment",
+    )
     return parser.parse_args()
 
 

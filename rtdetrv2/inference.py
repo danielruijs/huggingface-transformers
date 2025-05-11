@@ -7,7 +7,7 @@ from transformers import RTDetrImageProcessor, RTDetrV2ForObjectDetection
 
 
 def run_inference(image_processor, model, image, threshold):
-    inputs = image_processor(images=image, return_tensors="pt")
+    inputs = image_processor(images=image, return_tensors="pt").to(model.device)
 
     with torch.no_grad():
         outputs = model(**inputs)
@@ -47,9 +47,12 @@ def annotate_and_save(image, results, save_path, classes):
 
 
 def main(config):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
     model_dir = config["model_dir"]
     image_processor = RTDetrImageProcessor.from_pretrained(model_dir)
-    model = RTDetrV2ForObjectDetection.from_pretrained(model_dir)
+    model = RTDetrV2ForObjectDetection.from_pretrained(model_dir).to(device)
     classes = model.config.id2label
 
     img_dir = config["img_dir"]
@@ -62,6 +65,7 @@ def main(config):
         if img_file.endswith((".jpg", ".png"))
     ]
 
+    model.eval()
     for img_path in image_paths:
         image = Image.open(img_path).convert("RGB")
         results = run_inference(image_processor, model, image, config["threshold"])

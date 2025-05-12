@@ -64,7 +64,7 @@ python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to
 The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01.
 
 # Inference
-To run inference, modify the `configs/inference.yaml` file to set the model checkpoint and the paths to the folder with the images you want to run inference on. Then run the inference script:
+To run inference, use the following command:
 ```bash
 python inference.py --model_dir path/to/onnx/model --img_dir path/to/images --output_dir path/to/output --threshold 0.5
 ```

@@ -1,5 +1,4 @@
 import torch
-import yaml
 import os
 import argparse
 from PIL import Image, ImageDraw, ImageFont
@@ -46,47 +45,56 @@ def annotate_and_save(image, results, save_path, classes):
     print(f"Saved annotated image to {save_path}")
 
 
-def main(config):
+def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # Resolve paths relative to script location
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    model_dir = os.path.join(script_dir, config["model_dir"])
-    img_dir = os.path.join(script_dir, config["img_dir"])
-    output_dir = os.path.join(script_dir, config["output_dir"])
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(args.output_dir, exist_ok=True)
 
-    image_processor = RTDetrImageProcessor.from_pretrained(model_dir)
-    model = RTDetrV2ForObjectDetection.from_pretrained(model_dir).to(device)
+    image_processor = RTDetrImageProcessor.from_pretrained(args.model_dir)
+    model = RTDetrV2ForObjectDetection.from_pretrained(args.model_dir).to(device)
     classes = model.config.id2label
 
     image_paths = [
-        os.path.join(img_dir, img_file)
-        for img_file in os.listdir(img_dir)
+        os.path.join(args.img_dir, img_file)
+        for img_file in os.listdir(args.img_dir)
         if img_file.endswith((".jpg", ".png"))
     ]
 
     model.eval()
     for img_path in image_paths:
         image = Image.open(img_path).convert("RGB")
-        results = run_inference(image_processor, model, image, config["threshold"])
-        save_path = os.path.join(output_dir, os.path.basename(img_path))
+        results = run_inference(image_processor, model, image, args.threshold)
+        save_path = os.path.join(args.output_dir, os.path.basename(img_path))
         annotate_and_save(image, results, save_path, classes)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=True, help="Path to config file")
+    parser.add_argument(
+        "--model_dir", type=str, required=True, help="Directory of the onnx model"
+    )
+    parser.add_argument(
+        "--img_dir",
+        type=str,
+        required=True,
+        help="Directory of the images to be processed",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        required=True,
+        help="Directory to save the images with predictions",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.5,
+        help="Confidence threshold for predictions",
+    )
     return parser.parse_args()
-
-
-def load_config(config_path):
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
 
 
 if __name__ == "__main__":
     args = parse_args()
-    config = load_config(config_path=args.config)
-    main(config)
+    main(args)

@@ -1,8 +1,0 @@
-# This is a configuration file for running inference with the RTDETRv2 model.
-# Note: All paths are relative to the inference script's directory.
-
-model_dir: "./checkpoints/rtdetr_v2_r50vd/test/best_model" # Directory of the model and image processor
-img_dir: "./inference_images" # Directory of the images to be processed
-output_dir: "./output" # Directory to save the images with predictions
-
-threshold: 0.4 # Confidence threshold for predictions

@@ -1,8 +1,6 @@
 import torch
-import yaml
 import argparse
 import time
-import os
 from tqdm import tqdm
 from transformers import RTDetrImageProcessor, RTDetrV2ForObjectDetection
 from coco_utils import COCODataset
@@ -61,49 +59,57 @@ def run_inference(
     return predictions, labels
 
 
-def main(config):
+def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # Resolve paths relative to script location
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    model_dir = os.path.join(script_dir, config["model_dir"])
-    cocoann_file = os.path.join(script_dir, config["cocoann_file"])
-    img_dir = os.path.join(script_dir, config["img_dir"]) if "img_dir" in config else ""
-
-    image_processor = RTDetrImageProcessor.from_pretrained(model_dir)
-    model = RTDetrV2ForObjectDetection.from_pretrained(model_dir).to(device)
+    image_processor = RTDetrImageProcessor.from_pretrained(args.model_dir)
+    model = RTDetrV2ForObjectDetection.from_pretrained(args.model_dir).to(device)
 
     dataset = COCODataset(
-        cocoann_file=cocoann_file,
+        cocoann_file=args.cocoann_file,
         image_processor=image_processor,
-        image_root=img_dir,
+        image_root=args.img_dir,
     )
 
     predictions, labels = run_inference(
         image_processor=image_processor,
         model=model,
         dataset=dataset,
-        threshold=config["threshold"],
+        threshold=args.threshold,
     )
 
     _ = compute_COCO_metrics(
-        predictions=predictions, labels=labels, cocoann_file=cocoann_file
+        predictions=predictions, labels=labels, cocoann_file=args.cocoann_file
     )
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=True, help="Path to config file")
+    parser.add_argument(
+        "--model_dir", type=str, required=True, help="Directory of the model checkpoint"
+    )
+    parser.add_argument(
+        "--cocoann_file",
+        type=str,
+        required=True,
+        help="Path to COCO annotations file",
+    )
+    parser.add_argument(
+        "--img_dir",
+        type=str,
+        default="",
+        help="Image directory. May be omitted if the annotation file contains full paths to the images.",
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.01,
+        help="Confidence threshold for predictions",
+    )
     return parser.parse_args()
-
-
-def load_config(config_path):
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
 
 
 if __name__ == "__main__":
     args = parse_args()
-    config = load_config(config_path=args.config)
-    main(config)
+    main(args)

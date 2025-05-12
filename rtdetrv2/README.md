@@ -46,7 +46,7 @@ Note that training is done with nohup, so training will continue even if you clo
 - `--clear`: remove all logs and checkpoints from previous runs when starting training.
 - `--name`: name of the training run, used to create directories for logs and checkpoints.
 
-The best model from training is saved in the `output_dir` directory specified in the config file. The image processor is saved in the same directory along with the model to be used for inference.
+The best model from training is saved in the `output_dir` directory specified in the config file. The image processor is saved in the same directory along with the best model to be used for inference.
 
 ## Logging
 
@@ -56,17 +56,19 @@ tensorboard --logdir=logs --port=6006
 ```
 Then open your web browser and go to [http://localhost:6006](http://localhost:6006) to view the TensorBoard dashboard.
 
+# Evaluation
+To evaluate the model, run the evaluation script:
+```bash
+python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to/coco/annotations.json --image_dir path/to/images --threshold 0.01
+```
+The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01.
+
 # Inference
 To run inference, modify the `configs/inference.yaml` file to set the model checkpoint and the paths to the folder with the images you want to run inference on. Then run the inference script:
 ```bash
-python inference.py --config path/to/inference/config.yaml
+python inference.py --model_dir path/to/onnx/model --img_dir path/to/images --output_dir path/to/output --threshold 0.5
 ```
-
-# Evaluation
-To evaluate the model, modify the `configs/evaluation.yaml` file to set the model checkpoint and the path to the COCO format dataset to evaluate on. Then run the evaluation script:
-```bash
-python evaluation.py --config path/to/eval/config.yaml
-```
+The `--image_dir` parameter is the directory of the images to be processed. The `--output_dir` parameter is the directory where the images with predictions will be saved. The `--threshold` parameter is the confidence threshold for the predictions with a default value of 0.5.
 
 # ONNX and TensorRT
 
@@ -94,6 +96,8 @@ sudo ldconfig
 rm -rf ~/tensorrt
 ```
 
+## Exporting to ONNX
+
 To export the model to the ONNX format, specify the model checkpoint directory and the ouput directory where the ONNX model will be saved and run the following command:
 ```bash
 optimum-cli export onnx --model path/to/model/checkpoint --task object-detection --opset 17 --device cuda --dtype fp16 output/directory
@@ -111,6 +115,6 @@ The `--cache_dir` parameter is the directory where the model engine is cached. T
 
 To run inference with TensorRT, run the following command:
 ```bash
-python onnx/inference.py --model_dir path/to/onnx/model --cache_dir path/to/cache --img_dir path/to/images --output_dir path/to/output --threshold 0.01
+python onnx/inference.py --model_dir path/to/onnx/model --cache_dir path/to/cache --img_dir path/to/images --output_dir path/to/output --threshold 0.5
 ```
-The `--image_dir` parameter is the directory of the images to be processed. The `--output_dir` parameter is the directory where the output images will be saved. The `--threshold` parameter is the confidence threshold for the predictions with a default value of 0.5.
+The `--image_dir` parameter is the directory of the images to be processed. The `--output_dir` parameter is the directory where the images with predictions will be saved. The `--threshold` parameter is the confidence threshold for the predictions with a default value of 0.5.

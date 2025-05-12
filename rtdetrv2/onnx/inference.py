@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import argparse
 from PIL import Image, ImageDraw, ImageFont
-from transformers import RTDetrImageProcessor
+from transformers import AutoImageProcessor
 import onnxruntime as ort
 from dataclasses import dataclass
 
@@ -67,7 +67,7 @@ def main(args):
     os.makedirs(args.output_dir, exist_ok=True)
 
     # Load the model and image processor
-    image_processor = RTDetrImageProcessor.from_pretrained(args.model_dir)
+    image_processor = AutoImageProcessor.from_pretrained(args.model_dir)
     ort_session = ort.InferenceSession(
         args.model_dir + "/model.onnx",
         providers=[

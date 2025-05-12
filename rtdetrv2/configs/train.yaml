@@ -1,12 +1,11 @@
 # This is a configuration file for training the RTDETRv2 model.
 # Note: All paths are relative to the training script's directory.
 
-# Model checkpoint
-# checkpoint: "PekingU/rtdetr_v2_r18vd"
-# Alternative checkpoints (see https://huggingface.co/PekingU):
+# Model checkpoint. For available checkpoints see https://huggingface.co/PekingU
+checkpoint: "PekingU/rtdetr_v2_r18vd"
 # checkpoint: "PekingU/rtdetr_v2_r34vd"
 # checkpoint: "PekingU/rtdetr_v2_r50vd"
-checkpoint: "PekingU/rtdetr_v2_r101vd"
+# checkpoint: "PekingU/rtdetr_v2_r101vd"
 
 # Dataset paths
 # ann is the COCO annototation file and img is the image directory

@@ -4,7 +4,7 @@ import os
 import argparse
 import numpy as np
 from tqdm import tqdm
-from transformers import RTDetrImageProcessor
+from transformers import AutoImageProcessor
 import onnxruntime as ort
 from torch.utils.data import DataLoader
 from dataclasses import dataclass
@@ -76,7 +76,7 @@ def run_inference(
 
 
 def main(args):
-    image_processor = RTDetrImageProcessor.from_pretrained(args.model_dir)
+    image_processor = AutoImageProcessor.from_pretrained(args.model_dir)
     ort_session = ort.InferenceSession(
         args.model_dir + "/model.onnx",
         providers=[

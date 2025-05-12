@@ -5,8 +5,8 @@
 # checkpoint: "PekingU/rtdetr_v2_r18vd"
 # Alternative checkpoints (see https://huggingface.co/PekingU):
 # checkpoint: "PekingU/rtdetr_v2_r34vd"
-checkpoint: "PekingU/rtdetr_v2_r50vd"
-# checkpoint: "PekingU/rtdetr_v2_r101vd"
+# checkpoint: "PekingU/rtdetr_v2_r50vd"
+checkpoint: "PekingU/rtdetr_v2_r101vd"
 
 # Dataset paths
 # ann is the COCO annototation file and img is the image directory

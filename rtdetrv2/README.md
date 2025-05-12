@@ -42,11 +42,11 @@ Then run the training script:
 sh train.sh --config path/to/train/config.yaml
 ```
 
-Note that training is done with nohup, so training will continue even if you close the terminal. The following flags can be passed to the training script:
+Note that training is done with nohup, so training will continue even if you close the terminal. The output from the training script will be saved in the `train.log` file. The following flags can be passed to the training script:
 - `--clear`: remove all logs and checkpoints from previous runs when starting training.
 - `--name`: name of the training run, used to create directories for logs and checkpoints.
 
-The best model from training is saved in the `output_dir` directory specified in the config file. The image processor is saved in the same directory along with the best model to be used for inference.
+The best model from training is saved in the `output_dir` directory specified in the config file. The image processor is saved along with the best model to be used for inference.
 
 ## Logging
 

@@ -11,11 +11,14 @@ import os
 import argparse
 import datetime
 import albumentations as A
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
 from functools import partial
 from dataclasses import dataclass
-from coco_utils import COCODataset, create_size_map, get_classes_from_coco
+from coco_utils import (
+    COCODataset,
+    create_size_map,
+    get_classes_from_coco,
+    compute_COCO_metrics,
+)
 
 
 @dataclass
@@ -58,44 +61,11 @@ def compute_metrics(eval_pred, image_processor, cocoann_file):
         for label in batch:
             processed_labels.append({"image_id": label["image_id"]})
 
-    # Format the predictions to COCO format
-    coco_predictions = []
-    for i, output in enumerate(processed_predictions):
-        for box, score, label in zip(
-            output["boxes"], output["scores"], output["labels"]
-        ):
-            x1, y1, x2, y2 = box.tolist()
-            coco_predictions.append(
-                {
-                    "image_id": int(processed_labels[i]["image_id"]),
-                    "category_id": int(label),
-                    "bbox": [
-                        x1,
-                        y1,
-                        x2 - x1,
-                        y2 - y1,
-                    ],  # COCO bbox format: [x, y, w, h]
-                    "score": float(score),
-                }
-            )
-
-    # Use COCOeval for evaluation
-    coco_gt = COCO(annotation_file=cocoann_file)  # Ground truth
-    coco_dt = coco_gt.loadRes(coco_predictions)  # Predictions
-    coco_eval = COCOeval(coco_gt, coco_dt, "bbox")
-    coco_eval.evaluate()
-    coco_eval.accumulate()
-    coco_eval.summarize()
-
-    # Return metrics
-    return {
-        "mAP": float(coco_eval.stats[0]),  # mAP@[.5:.95]
-        "mAP_50": float(coco_eval.stats[1]),  # mAP@.50
-        "mAP_75": float(coco_eval.stats[2]),  # mAP@.75
-        "mAP_small": float(coco_eval.stats[3]),  # mAP@[.5:.95] small objects
-        "mAP_medium": float(coco_eval.stats[4]),  # mAP@[.5:.95] medium objects
-        "mAP_large": float(coco_eval.stats[5]),  # mAP@[.5:.95] large objects
-    }
+    return compute_COCO_metrics(
+        predictions=processed_predictions,
+        labels=processed_labels,
+        cocoann_file=cocoann_file,
+    )
 
 
 def collate_fn(batch):

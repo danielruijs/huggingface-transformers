@@ -2,7 +2,7 @@ import torch
 import os
 import argparse
 from PIL import Image, ImageDraw, ImageFont
-from transformers import RTDetrImageProcessor, RTDetrV2ForObjectDetection
+from transformers import AutoImageProcessor, AutoModelForObjectDetection
 
 
 def run_inference(image_processor, model, image, threshold):
@@ -51,8 +51,8 @@ def main(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    image_processor = RTDetrImageProcessor.from_pretrained(args.model_dir)
-    model = RTDetrV2ForObjectDetection.from_pretrained(args.model_dir).to(device)
+    image_processor = AutoImageProcessor.from_pretrained(args.model_dir)
+    model = AutoModelForObjectDetection.from_pretrained(args.model_dir).to(device)
     classes = model.config.id2label
 
     image_paths = [

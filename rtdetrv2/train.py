@@ -1,6 +1,6 @@
 from transformers import (
-    RTDetrImageProcessor,
-    RTDetrV2ForObjectDetection,
+    AutoImageProcessor,
+    AutoModelForObjectDetection,
     TrainingArguments,
     Trainer,
     TrainerCallback,
@@ -132,12 +132,12 @@ def main(args, config):
     classes = get_classes_from_coco(train_ann)
 
     # Load image processor and pre-trained model
-    image_processor = RTDetrImageProcessor.from_pretrained(
+    image_processor = AutoImageProcessor.from_pretrained(
         checkpoint,
         do_resize=True,
         size={"width": config["image_width"], "height": config["image_height"]},
     )
-    model = RTDetrV2ForObjectDetection.from_pretrained(
+    model = AutoModelForObjectDetection.from_pretrained(
         checkpoint, num_labels=len(classes), ignore_mismatched_sizes=True
     )
     model.config.id2label = {i: cls for i, cls in enumerate(classes)}

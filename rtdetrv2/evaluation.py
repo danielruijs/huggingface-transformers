@@ -2,7 +2,7 @@ import torch
 import argparse
 import time
 from tqdm import tqdm
-from transformers import RTDetrImageProcessor, RTDetrV2ForObjectDetection
+from transformers import AutoImageProcessor, AutoModelForObjectDetection
 from coco_utils import COCODataset
 from torch.utils.data import DataLoader
 from coco_utils import compute_COCO_metrics
@@ -63,8 +63,8 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    image_processor = RTDetrImageProcessor.from_pretrained(args.model_dir)
-    model = RTDetrV2ForObjectDetection.from_pretrained(args.model_dir).to(device)
+    image_processor = AutoImageProcessor.from_pretrained(args.model_dir)
+    model = AutoModelForObjectDetection.from_pretrained(args.model_dir).to(device)
 
     dataset = COCODataset(
         cocoann_file=args.cocoann_file,

@@ -1,5 +1,5 @@
 # Training
-Modify `configs/train.yaml` to set the model checkpoint, dataset paths and training parameters. A dataset with the COCO format is required. The dataset should consist of a folder with images and a JSON file with annotations. The JSON file should have the following structure:
+Select the config file for the model you want to train from the `configs` directory and specify the model checkpoint, dataset paths and training parameters. A dataset with the COCO format is required. The dataset should consist of a folder with images and a JSON file with annotations. The JSON file should have the following structure:
 ```
 {
   "images": [

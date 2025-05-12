@@ -32,9 +32,9 @@ Select the config file for the model you want to train from the `configs` direct
 }
 ```
 
-Make sure to move to the `rtdetrv2` directory before running the training script:
+Make sure to move to the `src` directory before running the training script:
 ```bash
-cd rtdetrv2
+cd src
 ```
 
 Then run the training script:

@@ -4,6 +4,7 @@ This repository demonstrates how to use the [Huggingface Transformers library](h
 
 - [RT-DETRv2](https://huggingface.co/docs/transformers/model_doc/rt_detr_v2)
 - [Conditional DETR](https://huggingface.co/docs/transformers/model_doc/conditional_detr)
+- [YOLOS](https://huggingface.co/docs/transformers/model_doc/yolos)
 
 # Installation
 Create a virtual environment:

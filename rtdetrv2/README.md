@@ -67,3 +67,54 @@ To evaluate the model, modify the `configs/evaluation.yaml` file to set the mode
 ```bash
 python evaluation.py --config path/to/eval/config.yaml
 ```
+
+# ONNX and TensorRT
+
+To export the model to ONNX and to run inference with TensorRT, you need to install the following packages:
+```bash
+python3 -m pip install wheel
+```
+Install latest version of `optimum` from the Hugging Face GitHub repository:
+```bash
+python -m pip install git+https://github.com/huggingface/optimum.git
+```
+Install other packages:
+```bash
+pip install onnx onnxruntime onnxruntime-gpu tensorrt
+```
+
+Then install TensorRT using the following commands. Make sure to download the correct version of TensorRT for your system which can be found at the [NVIDIA developer website](https://developer.nvidia.com/tensorrt/download).
+```bash
+mkdir tensorrt && cd tensorrt
+
+wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.10.0/tars/TensorRT-10.10.0.31.Linux.x86_64-gnu.cuda-12.9.tar.gz
+
+tar -xvzf TensorRT-10.10.0.31.Linux.x86_64-gnu.cuda-12.9.tar.gz
+
+sudo cp -r TensorRT-10.10.0.31/lib/* /usr/lib/x86_64-linux-gnu/
+
+sudo ldconfig
+
+rm -rf tensorrt
+```
+
+To export the model to the ONNX format, specify the model checkpoint directory and the ouput directory where the ONNX model will be saved and run the following command:
+```bash
+optimum-cli export onnx --model path/to/model/checkpoint --task object-detection --opset 17 --device cuda --dtype fp16 output/directory
+```
+
+## Evaluation
+
+Then run evaluation on the exported ONNX model to check if the model is working correctly:
+```bash
+python onnx/evaluation.py --model_dir path/to/onnx/model --cache_dir path/to/cache --cocoann_file path/to/coco/annotations.json --image_dir path/to/images --threshold 0.01
+```
+The `--cache_dir` parameter is the directory where the model engine is cached. The first time the model is run, the engine will be created and saved in this directory. Note that this can take some time. The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01.
+
+## Inference
+
+To run inference with TensorRT, run the following command:
+```bash
+python onnx/inference.py --model_dir path/to/onnx/model --cache_dir path/to/cache --img_dir path/to/images --output_dir path/to/output --threshold 0.01
+```
+The `--image_dir` parameter is the directory of the images to be processed. The `--output_dir` parameter is the directory where the output images will be saved. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.5.

@@ -71,31 +71,27 @@ python evaluation.py --config path/to/eval/config.yaml
 # ONNX and TensorRT
 
 To export the model to ONNX and to run inference with TensorRT, you need to install the following packages:
-```bash
-python3 -m pip install wheel
-```
-Install latest version of `optimum` from the Hugging Face GitHub repository:
+
+Install the latest version of `optimum` from the Hugging Face GitHub repository and the `onnx` and `onnxruntime-gpu` packages:
 ```bash
 python -m pip install git+https://github.com/huggingface/optimum.git
-```
-Install other packages:
-```bash
-pip install onnx onnxruntime onnxruntime-gpu tensorrt
+pip install onnx onnxruntime-gpu
 ```
 
-Then install TensorRT using the following commands. Make sure to download the correct version of TensorRT for your system which can be found at the [NVIDIA developer website](https://developer.nvidia.com/tensorrt/download).
+Then install TensorRT by following the instructions in the [TensorRT installation guide](https://docs.nvidia.com/deeplearning/tensorrt/latest/installing-tensorrt/installing.html).
+The following commands can be used on Debian 11 (Bullseye). Make sure to download the correct version of TensorRT for your system which can be found at the [NVIDIA developer website](https://developer.nvidia.com/tensorrt/download).
 ```bash
-mkdir tensorrt && cd tensorrt
+mkdir ~/tensorrt && cd ~/tensorrt
 
 wget https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.10.0/tars/TensorRT-10.10.0.31.Linux.x86_64-gnu.cuda-12.9.tar.gz
 
 tar -xvzf TensorRT-10.10.0.31.Linux.x86_64-gnu.cuda-12.9.tar.gz
 
-sudo cp -r TensorRT-10.10.0.31/lib/* /usr/lib/x86_64-linux-gnu/
+sudo mv TensorRT-10.10.0.31/lib/* /usr/lib/x86_64-linux-gnu/
 
 sudo ldconfig
 
-rm -rf tensorrt
+rm -rf ~/tensorrt
 ```
 
 To export the model to the ONNX format, specify the model checkpoint directory and the ouput directory where the ONNX model will be saved and run the following command:
@@ -105,7 +101,7 @@ optimum-cli export onnx --model path/to/model/checkpoint --task object-detection
 
 ## Evaluation
 
-Then run evaluation on the exported ONNX model to check if the model is working correctly:
+To run evaluation on the exported ONNX model with TensorRT, use the following command:
 ```bash
 python onnx/evaluation.py --model_dir path/to/onnx/model --cache_dir path/to/cache --cocoann_file path/to/coco/annotations.json --image_dir path/to/images --threshold 0.01
 ```
@@ -117,4 +113,4 @@ To run inference with TensorRT, run the following command:
 ```bash
 python onnx/inference.py --model_dir path/to/onnx/model --cache_dir path/to/cache --img_dir path/to/images --output_dir path/to/output --threshold 0.01
 ```
-The `--image_dir` parameter is the directory of the images to be processed. The `--output_dir` parameter is the directory where the output images will be saved. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.5.
+The `--image_dir` parameter is the directory of the images to be processed. The `--output_dir` parameter is the directory where the output images will be saved. The `--threshold` parameter is the confidence threshold for the predictions with a default value of 0.5.

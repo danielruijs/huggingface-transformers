@@ -7,6 +7,7 @@ checkpoint: "PekingU/rtdetr_v2_r18vd"
 # checkpoint: "PekingU/rtdetr_v2_r50vd"
 # checkpoint: "PekingU/rtdetr_v2_r101vd"
 
+
 # Dataset paths
 # ann is the COCO annototation file and img is the image directory
 # The image directories be omitted if the annotation files contains full paths to the images.

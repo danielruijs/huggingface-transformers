@@ -52,9 +52,16 @@ The best model from training is saved in the `output_dir` directory specified in
 
 Logs and checkpoints are saved in the `logs` directory. You can monitor the training process using TensorBoard. To do this, run the following command in a separate terminal:
 ```bash
-tensorboard --logdir=logs --port=6006
+tensorboard --logdir logs/ --port 6006
 ```
 Then open your web browser and go to [http://localhost:6006](http://localhost:6006) to view the TensorBoard dashboard.
+
+## Scheduling
+
+To schedule multiple training runs, you can use the `schedule_training.sh` script. It will run the training script for each config file in `config_directory`.
+```bash
+nohup sh schedule_training.sh config_directory &
+```
 
 # Evaluation
 To evaluate the model, run the evaluation script:

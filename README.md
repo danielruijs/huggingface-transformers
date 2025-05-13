@@ -1,8 +1,9 @@
 # Huggingface Transformers
 
-This repository demonstrates how to use the [Huggingface Transformers library](https://huggingface.co/docs/transformers/en/index) for object detection. Specifically it focuses on finetuning models on custom datasets. Currently, the following models are supported:
+This repository demonstrates how to use the [Huggingface Transformers library](https://huggingface.co/docs/transformers/en/index) for object detection. Specifically it focuses on finetuning models on custom datasets. Currently, the following models have been tested but all transformers object detection models should work:
 
 - [Conditional DETR](https://huggingface.co/docs/transformers/model_doc/conditional_detr)
+- [D-FINE](https://huggingface.co/docs/transformers/main/en/model_doc/d_fine)
 - [Deformable DETR](https://huggingface.co/docs/transformers/en/model_doc/deformable_detr)
 - [RT-DETRv2](https://huggingface.co/docs/transformers/model_doc/rt_detr_v2)
 - [YOLOS](https://huggingface.co/docs/transformers/model_doc/yolos)
@@ -38,12 +39,14 @@ python scripts/get_example_dataset.py
 
 # Results
 
-The following table summarizes the models´ performance on the test set of the example dataset. AP refers to mAP@50:5:95. The inference time (forward pass time) is measured on an NVIDIA T4 GPU with a batch size of 1. All models are trained for 30 epochs.
+The following table summarizes the models´ performance on the test set of the example dataset. AP refers to mAP@50:5:95. The inference time (forward pass time) is measured on an NVIDIA T4 GPU with a batch size of 1.
 
 | Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms)<br> | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
 |-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
 |Conditional DETR (50)|
 |`conditional-detr-resnet-50`| 0.363 | 0.158 | 0.278 | 0.514 | 30.2 | | | 0.8 |
+|D-FINE (50)|
+|`dfine-small-obj365`|
 |Deformable DETR (50)|
 |`deformable-detr`| 0.699 | 0.337 | 0.553 | 0.849 | 38.8 | | | 16.5 |
 |RT-DETRv2 (30)|

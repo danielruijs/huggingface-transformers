@@ -60,7 +60,7 @@ Then open your web browser and go to [http://localhost:6006](http://localhost:60
 
 To schedule multiple training runs, you can use the `schedule_training.sh` script. It will run the training script for each config file in `config_directory`.
 ```bash
-nohup sh schedule_training.sh config_directory &
+rm -f train.log && nohup sh schedule_training.sh config_directory >> train.log 2>&1 &
 ```
 
 # Evaluation

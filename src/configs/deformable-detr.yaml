@@ -6,6 +6,7 @@ checkpoint: "SenseTime/deformable-detr"
 # checkpoint: "SenseTime/deformable-detr-with-box-refine-two-stage"
 # checkpoint: "SenseTime/deformable-detr-with-box-refine"
 
+save_safetensors: False
 
 # Dataset paths
 # ann is the COCO annototation file and img is the image directory

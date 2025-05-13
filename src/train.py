@@ -180,6 +180,7 @@ def main(args, config):
         fp16_full_eval=config["fp16_full_eval"],
         remove_unused_columns=False,
         eval_do_concat_batches=False,
+        save_safetensors=config.get("save_safetensors", True),
     )
 
     # Create Trainer

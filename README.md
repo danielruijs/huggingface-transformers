@@ -2,8 +2,9 @@
 
 This repository demonstrates how to use the [Huggingface Transformers library](https://huggingface.co/docs/transformers/en/index) for object detection. Specifically it focuses on finetuning models on custom datasets. Currently, the following models are supported:
 
-- [RT-DETRv2](https://huggingface.co/docs/transformers/model_doc/rt_detr_v2)
 - [Conditional DETR](https://huggingface.co/docs/transformers/model_doc/conditional_detr)
+- [Deformable DETR](https://huggingface.co/docs/transformers/en/model_doc/deformable_detr)
+- [RT-DETRv2](https://huggingface.co/docs/transformers/model_doc/rt_detr_v2)
 - [YOLOS](https://huggingface.co/docs/transformers/model_doc/yolos)
 
 # Installation
@@ -41,13 +42,15 @@ The following table summarizes the models´ performance on the test set of the e
 
 | Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms)<br> | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
 |-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+|Conditional DETR (50)|
+|`conditional-detr-resnet-50`| 0.363 | 0.158 | 0.278 | 0.514 | 30.2 | | | 0.8 |
+|Deformable DETR (50)|
+|`deformable-detr`| 0.699 | 0.337 | 0.553 | 0.849 | 38.8 | | | 16.5 |
 |RT-DETRv2 (30)|
 |`rtdetr_v2_r18vd`| 0.302 | 0.102 | 0.345 | 0.427 | 20.1 | 8.3 | 7.6 | 0.8 |
 |`rtdetr_v2_r34vd`| 0.557 | 0.237 | 0.510 | 0.780 | 25.2 | 12.2 | 7.8 | 0.8 |
 |`rtdetr_v2_r50vd`| 0.746 | 0.401 | 0.808 | 0.891 | 32.4 | 19.2 | 7.5 | 0.8 |
 |`rtdetr_v2_r101vd`| 0.760 | 0.447 | 0.834 | 0.901 | 48.8 | 28.9 | 10.3 | 0.8 | 
-|Conditional DETR (30)|
-|`conditional-detr-resnet-50`| 0.241 | 0.134 | 0.235 | 0.346 |
 |YOLOS (100)|
 |`yolos-tiny`| 0.557 | 0.163 | 0.441 | 0.755 | 9.2 | | 5.7 | 0.8 |
 |`yolos-small`| 0.579 | 0.150 | 0.520 | 0.823 | 10.4 | | 8.9 | 49.5 |

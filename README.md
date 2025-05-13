@@ -39,11 +39,19 @@ python scripts/get_example_dataset.py
 
 The following table summarizes the models´ performance on the test set of the example dataset. AP refers to mAP@50:5:95. The inference time (forward pass time) is measured on an NVIDIA T4 GPU with a batch size of 1. All models are trained for 30 epochs.
 
-### RT-DETRv2
-| Checkpoint |    AP   |   APs   |   APm   |   APl   | Inference Time (ms) | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) |
-|-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-|`rtdetr_v2_r18vd`| 0.302 | 0.102 | 0.345 | 0.427 | 20.1 | 8.3 | 7.6 |
-|`rtdetr_v2_r34vd`| 0.557 | 0.237 | 0.510 | 0.780 | 25.2 | 12.2 | 7.8 |
-|`rtdetr_v2_r50vd`| 0.746 | 0.401 | 0.808 | 0.891 | 32.4 | 19.2 | 7.5 |
+| Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms)<br> | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
+|-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+|RT-DETRv2 (30)|
+|`rtdetr_v2_r18vd`| 0.302 | 0.102 | 0.345 | 0.427 | 20.1 | 8.3 | 7.6 | 0.8 |
+|`rtdetr_v2_r34vd`| 0.557 | 0.237 | 0.510 | 0.780 | 25.2 | 12.2 | 7.8 | 0.8 |
+|`rtdetr_v2_r50vd`| 0.746 | 0.401 | 0.808 | 0.891 | 32.4 | 19.2 | 7.5 | 0.8 |
+|`rtdetr_v2_r101vd`| 0.760 | 0.447 | 0.834 | 0.901 | 48.8 | 28.9 | 10.3 | 0.8 | 
+|Conditional DETR (30)|
+|`conditional-detr-resnet-50`| 0.241 | 0.134 | 0.235 | 0.346 |
+|YOLOS (100)|
+|`yolos-tiny`| 0.557 | 0.163 | 0.441 | 0.755 | 9.2 | | 5.7 | 0.8 |
+|`yolos-small`| 0.579 | 0.150 | 0.520 | 0.823 | 10.4 | | 8.9 | 49.5 |
+|`yolos-base`| 0.681 | 0.256 | 0.584 | 0.887 | 11.9 | | 9.9 | 132.2 |
+
 
 *Note that using FP16 may lead to a slight difference in AP, in this case less than 0.01.

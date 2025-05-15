@@ -19,8 +19,8 @@ test_ann: "../data/test/cocoann.json" # Optional, if not provided, validation se
 test_img: "../data/test/images" # Optional, if not provided, validation set will be used for final evaluation
 
 # Training parameters
-image_width: 416
-image_height: 416
+image_width: 416 # Needs to be a multiple of 32
+image_height: 416 # Needs to be a multiple of 32
 per_device_train_batch_size: 16
 per_device_eval_batch_size: 16
 num_train_epochs: 30

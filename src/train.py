@@ -7,6 +7,7 @@ from transformers import (
 )
 import torch
 import yaml
+import json
 import os
 import argparse
 import datetime
@@ -19,6 +20,9 @@ from coco_utils import (
     get_classes_from_coco,
     compute_COCO_metrics,
 )
+
+
+EVAL_BATCHES_JSONL = "eval_batches.jsonl"
 
 
 @dataclass
@@ -41,9 +45,12 @@ def compute_metrics(eval_pred, image_processor, cocoann_file):
 
     size_map = create_size_map(cocoann_file=cocoann_file)
     image_sizes = []
+    processed_labels = []
     for batch in labels:
         batch_image_sizes = [size_map[int(lbl["image_id"])] for lbl in batch]
         image_sizes.append(batch_image_sizes)
+        for label in batch:
+            processed_labels.append({"image_id": label["image_id"]})
 
     processed_predictions = []
     for batch, target_sizes in zip(predictions, image_sizes):
@@ -56,16 +63,86 @@ def compute_metrics(eval_pred, image_processor, cocoann_file):
         )
         processed_predictions.extend(post_processed_output)
 
-    processed_labels = []
-    for batch in labels:
-        for label in batch:
-            processed_labels.append({"image_id": label["image_id"]})
-
     return compute_COCO_metrics(
         predictions=processed_predictions,
         labels=processed_labels,
         cocoann_file=cocoann_file,
     )
+
+
+def serialize_tensor_dict(tensor_dict):
+    """
+    Convert a dictionary of tensors to a serializable format.
+    Args:
+        tensor_dict: Dictionary containing tensors.
+    Returns:
+        dict: A dictionary with tensors converted to lists.
+    """
+    serializable = {}
+    for k, v in tensor_dict.items():
+        if isinstance(v, torch.Tensor):
+            serializable[k] = v.cpu().tolist()
+        else:
+            serializable[k] = v
+    return serializable
+
+
+def compute_metrics_batch(
+    eval_pred, image_processor, cocoann_file, size_map, compute_result
+):
+    """
+    Batch-wise compute_metrics that writes each batch to disk, then on compute_result=True does the full COCO evaluation.
+    Args:
+        eval_pred: Tuple of predictions and labels.
+        image_processor: Image processor for post-processing.
+        cocoann_file: Path to the COCO annotations file.
+        compute_result: Boolean flag to compute final results.
+    Returns:
+        dict: A dictionary containing evaluation metrics if compute_result is True.
+    """
+    # During batch calls: process & append to disk, return empty
+    if not compute_result:
+        predictions, labels = eval_pred.predictions, eval_pred.label_ids
+
+        batch_image_sizes = [size_map[int(lbl["image_id"])] for lbl in labels]
+
+        output = ModelOutput(
+            logits=predictions[1].detach().clone(),
+            pred_boxes=predictions[2].detach().clone(),
+        )
+        post = image_processor.post_process_object_detection(
+            output, threshold=0.01, target_sizes=batch_image_sizes
+        )
+
+        # Save predictions and labels to JSONL file
+        with open(EVAL_BATCHES_JSONL, "a") as f:
+            for det, lbl in zip(post, labels):
+                record = {
+                    "predictions": serialize_tensor_dict(det),
+                    "labels": serialize_tensor_dict(lbl),
+                }
+                f.write(json.dumps(record) + "\n")
+
+        return {}
+
+    # Final call: load predictions and labels and compute COCO metrics
+    else:
+        all_preds = []
+        all_labels = []
+        with open(EVAL_BATCHES_JSONL, "r") as f:
+            for line in f:
+                rec = json.loads(line)
+                all_preds.append(rec["predictions"])
+                all_labels.append(rec["labels"])
+
+        metrics = compute_COCO_metrics(
+            predictions=all_preds,
+            labels=all_labels,
+            cocoann_file=cocoann_file,
+        )
+
+        os.remove(EVAL_BATCHES_JSONL)
+        return metrics
 
 
 def collate_fn(batch):
@@ -98,6 +175,9 @@ class AugmentationSwitcher(TrainerCallback):
 
 def main(args, config):
     checkpoint = config["checkpoint"]
+
+    if os.path.exists(EVAL_BATCHES_JSONL):
+        os.remove(EVAL_BATCHES_JSONL)
 
     # Resolve paths relative to script location
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -160,6 +240,21 @@ def main(args, config):
         image_root=valid_img,
     )
 
+    batch_eval_metrics = config.get("batch_eval_metrics", False)
+    if batch_eval_metrics:
+        compute_metrics_func = partial(
+            compute_metrics_batch,
+            image_processor=image_processor,
+            cocoann_file=valid_ann,
+            size_map=create_size_map(cocoann_file=valid_ann),
+        )
+    else:
+        compute_metrics_func = partial(
+            compute_metrics,
+            image_processor=image_processor,
+            cocoann_file=valid_ann,
+        )
+
     # Set up training arguments
     training_args = TrainingArguments(
         num_train_epochs=config["num_train_epochs"],
@@ -181,6 +276,7 @@ def main(args, config):
         remove_unused_columns=False,
         eval_do_concat_batches=False,
         save_safetensors=config.get("save_safetensors", True),
+        batch_eval_metrics=batch_eval_metrics,
     )
 
     # Create Trainer
@@ -189,11 +285,7 @@ def main(args, config):
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
-        compute_metrics=partial(
-            compute_metrics,
-            image_processor=image_processor,
-            cocoann_file=valid_ann,
-        ),
+        compute_metrics=compute_metrics_func,
         data_collator=collate_fn,
         callbacks=[
             AugmentationSwitcher(
@@ -216,11 +308,20 @@ def main(args, config):
             image_processor=image_processor,
             image_root=test_img,
         )
-        trainer.compute_metrics = partial(
-            compute_metrics,
-            image_processor=image_processor,
-            cocoann_file=test_ann,
-        )
+
+        if batch_eval_metrics:
+            trainer.compute_metrics = partial(
+                compute_metrics_batch,
+                image_processor=image_processor,
+                cocoann_file=test_ann,
+                size_map=create_size_map(cocoann_file=test_ann),
+            )
+        else:
+            partial(
+                compute_metrics,
+                image_processor=image_processor,
+                cocoann_file=test_ann,
+            )
 
         results = trainer.evaluate(eval_dataset=test_dataset, metric_key_prefix="test")
         print("Final evaluation on test set:\n", results)

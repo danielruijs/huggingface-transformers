@@ -48,6 +48,10 @@ Note that training is done with nohup, so training will continue even if you clo
 
 The best model from training is saved in the `output_dir` directory specified in the config file. The image processor is saved along with the best model to be used for inference.
 
+## Tips for Training
+
+- If you get OOM errors during evaluation, try setting `batch_eval_metrics: True` in the config file.
+
 ## Logging
 
 Logs and checkpoints are saved in the `logs` directory. You can monitor the training process using TensorBoard. To do this, run the following command in a separate terminal:

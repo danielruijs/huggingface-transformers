@@ -125,7 +125,10 @@ def compute_COCO_metrics(predictions, labels, cocoann_file):
     coco_predictions = []
     for pred, gt_label in zip(predictions, labels):
         for box, score, label in zip(pred["boxes"], pred["scores"], pred["labels"]):
-            x1, y1, x2, y2 = box.tolist()
+            if hasattr(box, "tolist"):
+                x1, y1, x2, y2 = box.tolist()
+            else:
+                x1, y1, x2, y2 = box
             coco_predictions.append(
                 {
                     "image_id": int(gt_label["image_id"]),

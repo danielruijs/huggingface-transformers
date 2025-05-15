@@ -1,0 +1,46 @@
+# This is a configuration file for training the DETR model.
+# Note: All paths are relative to the training script's directory.
+
+# Model checkpoint. For available checkpoints see https://huggingface.co/facebook
+checkpoint: "facebook/detr-resnet-50"
+# checkpoint: "facebook/detr-resnet-50-dc5"
+# checkpoint: "facebook/detr-resnet-101"
+# checkpoint: "facebook/detr-resnet-101-dc5"
+
+
+# Dataset paths
+# ann is the COCO annototation file and img is the image directory
+# The image directories be omitted if the annotation files contains full paths to the images.
+train_ann: "../data/train/cocoann.json"
+train_img: "../data/train/images"
+valid_ann: "../data/valid/cocoann.json"
+valid_img: "../data/valid/images"
+test_ann: "../data/test/cocoann.json" # Optional, if not provided, validation set will be used for final evaluation
+test_img: "../data/test/images" # Optional, if not provided, validation set will be used for final evaluation
+
+# Training parameters
+image_width: 416
+image_height: 416
+per_device_train_batch_size: 16
+per_device_eval_batch_size: 16
+num_train_epochs: 50
+
+output_dir: "./checkpoints" # Directory to save the model checkpoints.
+save_total_limit: 1 # Limit the total amount of checkpoints.
+logging_dir: "./logs" # TensorBoard logging directory.
+logging_steps: 0.01 # Number of update steps between two logs. If smaller than 1, will be interpreted as ratio of total training steps.
+
+fp16: True # Whether to use fp16 16-bit (mixed) precision training instead of 32-bit training.
+fp16_full_eval: True # Whether to use full float16 evaluation instead of 32-bit. This will be faster and save memory but can harm metric values.
+
+# See https://albumentations.ai/docs/api-reference/ for more augmentations
+no_aug_epochs: 5 # Number of epochs at the end without augmentation
+augmentations:
+  - name: RandomSizedBBoxSafeCrop
+    params: { height: 416, width: 416, p: 0.1 }
+
+  - name: MotionBlur
+    params: { blur_limit: [3, 3], p: 0.1 }
+
+  - name: CoarseDropout
+    params: { p: 0.1 }

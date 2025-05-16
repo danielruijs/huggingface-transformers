@@ -70,7 +70,7 @@ rm -f train.log && nohup sh schedule_training.sh config_directory >> train.log 2
 # Evaluation
 To evaluate the model, run the evaluation script:
 ```bash
-python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to/coco/annotations.json --image_dir path/to/images --threshold 0.01
+python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to/coco/annotations.json --img_dir path/to/images --threshold 0.01
 ```
 The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01.
 

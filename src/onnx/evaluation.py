@@ -12,7 +12,7 @@ from dataclasses import dataclass
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from coco_utils import COCODataset, compute_COCO_metrics
+from coco_utils import COCODataset, compute_COCO_metrics, create_size_map
 from train import serialize_tensor_dict
 
 EVAL_RESULTS_JSONL = "eval_results.jsonl"
@@ -25,7 +25,7 @@ class ModelOutput:
 
 
 def run_inference(
-    image_processor, ort_session, dataset, threshold, use_fp16, use_lowmem
+    image_processor, ort_session, dataset, threshold, size_map, use_fp16, use_lowmem
 ):
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
@@ -56,7 +56,7 @@ def run_inference(
         start_post = time.perf_counter()
         results = image_processor.post_process_object_detection(
             outputs,
-            target_sizes=batch_labels["size"],
+            target_sizes=[size_map[int(batch_labels["image_id"])]],
             threshold=threshold,
         )
         end_post = time.perf_counter()
@@ -119,6 +119,7 @@ def main(args):
         ort_session=ort_session,
         dataset=dataset,
         threshold=args.threshold,
+        size_map=create_size_map(cocoann_file=args.cocoann_file),
         use_fp16=args.fp16,
         use_lowmem=args.lowmem,
     )

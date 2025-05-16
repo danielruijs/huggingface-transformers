@@ -70,9 +70,9 @@ rm -f train.log && nohup sh schedule_training.sh config_directory >> train.log 2
 # Evaluation
 To evaluate the model, run the evaluation script:
 ```bash
-python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to/coco/annotations.json --img_dir path/to/images --threshold 0.01 --lowmem
+python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to/coco/annotations.json --img_dir path/to/images --threshold 0.01 --fp16 --lowmem
 ```
-The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01. The `--lowmem` parameter is used to reduce memory usage during evaluation. This may slow down the evaluation process, but it is useful if you are running out of memory.
+The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01. The `--fp16` parameter is used to run the model in FP16 mode. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets). The `--lowmem` parameter is used to reduce memory usage during evaluation. This may slow down the evaluation process, but it is useful if you are running out of memory.
 
 # Inference
 To run inference, use the following command:
@@ -120,7 +120,7 @@ To run evaluation on the exported ONNX model with TensorRT, use the following co
 ```bash
 python onnx/evaluation.py --model_dir path/to/onnx/model --cache_dir path/to/cache --cocoann_file path/to/coco/annotations.json --img_dir path/to/images --threshold 0.01 --fp16 --lowmem
 ```
-The `--cache_dir` parameter is the directory where the model engine is cached. The first time the model is run, the engine will be created and saved in this directory. Note that this can take some time. The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01. The `--fp16` parameter is used to run the model in FP16 mode. Note that this may lead to slightly lower AP. The `--lowmem` parameter is used to reduce memory usage during evaluation. This may slow down the evaluation process, but it is useful if you are running out of memory.
+The `--cache_dir` parameter is the directory where the model engine is cached. The first time the model is run, the engine will be created and saved in this directory. Note that this can take some time. The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01. The `--fp16` parameter is used to run the model in FP16 mode. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets). The `--lowmem` parameter is used to reduce memory usage during evaluation. This may slow down the evaluation process, but it is useful if you are running out of memory.
 
 ## Inference
 

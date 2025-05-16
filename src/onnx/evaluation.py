@@ -1,6 +1,7 @@
 import torch
 import time
 import os
+import json
 import argparse
 import numpy as np
 from tqdm import tqdm
@@ -12,6 +13,9 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from coco_utils import COCODataset, compute_COCO_metrics
+from train import serialize_tensor_dict
+
+EVAL_RESULTS_JSONL = "eval_results.jsonl"
 
 
 @dataclass
@@ -20,7 +24,9 @@ class ModelOutput:
     pred_boxes: torch.Tensor
 
 
-def run_inference(image_processor, ort_session, dataset, threshold, use_fp16):
+def run_inference(
+    image_processor, ort_session, dataset, threshold, use_fp16, use_lowmem
+):
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     predictions = []
@@ -59,8 +65,16 @@ def run_inference(image_processor, ort_session, dataset, threshold, use_fp16):
             total_forward += end_forward - start_forward
             total_post += end_post - start_post
 
-        predictions.extend(results)
-        labels.append(batch_labels)
+        if use_lowmem:
+            with open(EVAL_RESULTS_JSONL, "a") as f:
+                record = {
+                    "predictions": serialize_tensor_dict(results[0]),
+                    "labels": serialize_tensor_dict(batch_labels),
+                }
+                f.write(json.dumps(record) + "\n")
+        else:
+            predictions.extend(results)
+            labels.append(batch_labels)
 
     avg_forward_time = total_forward / (len(dataloader) - warmup_batches)
     avg_post_time = total_post / (len(dataloader) - warmup_batches)
@@ -69,6 +83,13 @@ def run_inference(image_processor, ort_session, dataset, threshold, use_fp16):
     )
     print(f"Average forward pass time: {avg_forward_time * 1000:.4f} ms")
     print(f"Average post-processing time: {avg_post_time * 1000:.4f} ms\n")
+
+    if use_lowmem:
+        with open(EVAL_RESULTS_JSONL, "r") as f:
+            for line in f:
+                rec = json.loads(line)
+                predictions.append(rec["predictions"])
+                labels.append(rec["labels"])
     return predictions, labels
 
 
@@ -99,11 +120,15 @@ def main(args):
         dataset=dataset,
         threshold=args.threshold,
         use_fp16=args.fp16,
+        use_lowmem=args.lowmem,
     )
 
     _ = compute_COCO_metrics(
         predictions=predictions, labels=labels, cocoann_file=args.cocoann_file
     )
+
+    if os.path.exists(EVAL_RESULTS_JSONL):
+        os.remove(EVAL_RESULTS_JSONL)
 
 
 def parse_args():
@@ -133,6 +158,7 @@ def parse_args():
         help="Confidence threshold for predictions",
     )
     parser.add_argument("--fp16", action="store_true", help="Use FP16 precision")
+    parser.add_argument("--lowmem", action="store_true", help="Use low memory mode")
     return parser.parse_args()
 
 

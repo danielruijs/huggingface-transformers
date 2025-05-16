@@ -72,14 +72,19 @@ To evaluate the model, run the evaluation script:
 ```bash
 python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to/coco/annotations.json --img_dir path/to/images --threshold 0.01 --fp16 --lowmem
 ```
-The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01. The `--fp16` parameter is used to run the model in FP16 mode. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets). The `--lowmem` parameter is used to reduce memory usage during evaluation. This may slow down the evaluation process, but it is useful if you are running out of memory.
+- `--image_dir`: May be omitted if the annotation file contains full paths to the images.
+- `--threshold`: Confidence threshold for predictions. Default is 0.01.
+- `--fp16`: Runs the model in FP16 mode. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets).
+- `--lowmem`: Reduces memory usage during evaluation. This may slow down the process but is useful if memory is limited.
 
 # Inference
 To run inference, use the following command:
 ```bash
 python inference.py --model_dir path/to/onnx/model --img_dir path/to/images --output_dir path/to/output --threshold 0.5
 ```
-The `--image_dir` parameter is the directory of the images to be processed. The `--output_dir` parameter is the directory where the images with predictions will be saved. The `--threshold` parameter is the confidence threshold for the predictions with a default value of 0.5.
+- `--image_dir`: Directory of the images to be processed.
+- `--output_dir`: Directory where the images with predictions will be saved.
+- `--threshold`: Confidence threshold for predictions. Default is 0.5.
 
 # ONNX and TensorRT
 
@@ -120,7 +125,11 @@ To run evaluation on the exported ONNX model with TensorRT, use the following co
 ```bash
 python onnx/evaluation.py --model_dir path/to/onnx/model --cache_dir path/to/cache --cocoann_file path/to/coco/annotations.json --img_dir path/to/images --threshold 0.01 --fp16 --lowmem
 ```
-The `--cache_dir` parameter is the directory where the model engine is cached. The first time the model is run, the engine will be created and saved in this directory. Note that this can take some time. The `--image_dir` parameter may be omitted if the annotation file contains full paths to the images. The `--threshold` parameter is the confidence threshold for the predictions. The default value is 0.01. The `--fp16` parameter is used to run the model in FP16 mode. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets). The `--lowmem` parameter is used to reduce memory usage during evaluation. This may slow down the evaluation process, but it is useful if you are running out of memory.
+- `--cache_dir`: Directory where the model engine is cached. The first time the model is run, the engine will be created and saved in this directory. Note that this can take some time.
+- `--image_dir`: May be omitted if the annotation file contains full paths to the images.
+- `--threshold`: Sets the confidence threshold for predictions. Default is 0.01.
+- `--fp16`: Runs the model in FP16 mode. Must be set to the same value as the one used during export. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets).
+- `--lowmem`: Reduces memory usage during evaluation. This may slow down the process but is useful if memory is limited.
 
 ## Inference
 
@@ -128,4 +137,6 @@ To run inference with TensorRT, run the following command:
 ```bash
 python onnx/inference.py --model_dir path/to/onnx/model --cache_dir path/to/cache --img_dir path/to/images --output_dir path/to/output --threshold 0.5
 ```
-The `--image_dir` parameter is the directory of the images to be processed. The `--output_dir` parameter is the directory where the images with predictions will be saved. The `--threshold` parameter is the confidence threshold for the predictions with a default value of 0.5.
+- `--image_dir`: Directory of the images to be processed.
+- `--output_dir`: Directory where the images with predictions will be saved.
+- `--threshold`: Confidence threshold for predictions. Default is 0.5.

@@ -20,12 +20,7 @@ class ModelOutput:
     pred_boxes: torch.Tensor
 
 
-def run_inference(
-    image_processor,
-    ort_session,
-    dataset,
-    threshold,
-):
+def run_inference(image_processor, ort_session, dataset, threshold, use_fp16):
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     predictions = []
@@ -40,9 +35,11 @@ def run_inference(
         # Forward pass
         start_forward = time.perf_counter()
         with torch.no_grad():
-            raw_outputs = ort_session.run(
-                None, {"pixel_values": inputs.numpy().astype(np.float16)}
-            )
+            if use_fp16:
+                inputs = inputs.numpy().astype(np.float16)
+            else:
+                inputs = inputs.numpy()
+            raw_outputs = ort_session.run(None, {"pixel_values": inputs})
             outputs = ModelOutput(
                 logits=torch.from_numpy(raw_outputs[0]),
                 pred_boxes=torch.from_numpy(raw_outputs[1]),
@@ -101,6 +98,7 @@ def main(args):
         ort_session=ort_session,
         dataset=dataset,
         threshold=args.threshold,
+        use_fp16=args.fp16,
     )
 
     _ = compute_COCO_metrics(
@@ -134,6 +132,7 @@ def parse_args():
         default=0.01,
         help="Confidence threshold for predictions",
     )
+    parser.add_argument("--fp16", action="store_true", help="Use FP16 precision")
     return parser.parse_args()
 
 

@@ -28,9 +28,13 @@ Install the required packages:
 pip install transformers[torch] pycocotools scipy tensorboard albumentations
 ```
 
-# Example dataset
+# Example datasets
 
-The example dataset used in this repository is the [Traffic Signs Detection Dataset](https://www.kaggle.com/datasets/pkdarabi/cardetection).
+Two example datasets are used in this repository:
+
+## Dataset 1, 416x416 images
+
+The first example dataset used in this repository is the [Traffic Signs Detection Dataset](https://www.kaggle.com/datasets/pkdarabi/cardetection). The dataset contains 416x416 images of traffic signs.
 
 To download the dataset, install the kagglehub package and then run the following python script. This will download the dataset and extract it to a `data` folder, as well as create coco annotations for the dataset.
 ```bash
@@ -38,9 +42,15 @@ pip install kagglehub
 python scripts/get_example_dataset.py
 ```
 
+## Dataset 2, 1920x1080 images
+
+The second example dataset used in this repository is the [Brackish Underwater Dataset](https://public.roboflow.com/object-detection/brackish-underwater/1). The dataset contains 1920x1080 images of fish, crabs, and other marine animals. It can be downloaded by following the link and selecting the COCO download format.
+
 # Results
 
-The following table summarizes the models´ performance on the test set of the example dataset. AP refers to mAP@50:5:95. The inference time (forward pass time) is measured on an NVIDIA T4 GPU with a batch size of 1.
+The following tables summarizes the models´ performance on the test sets of the example datasets. AP refers to mAP@50:5:95. The inference time (forward pass time) is measured on an NVIDIA T4 GPU with a batch size of 1.
+
+## Dataset 1, 416x416 images
 
 | Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms)<br> | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
 |-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
@@ -62,5 +72,13 @@ The following table summarizes the models´ performance on the test set of the e
 |`yolos-small`| 0.579 | 0.150 | 0.520 | 0.823 | 10.4 | | 8.9 | 49.5 |
 |`yolos-base`| 0.681 | 0.256 | 0.584 | 0.887 | 11.9 | | 9.9 | 132.2 |
 
+*Note that using FP16 may lead to a slight difference in AP, in this case less than 0.01.
+
+## Dataset 2, 1920x1080 images
+
+| Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms) | Inference Time (ms)<br>FP16* | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
+|-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+|RT-DETRv2 (20)|
+|`rtdetr_v2_r18vd`| 0.592 | 0.065 | 0.544 | 0.651 | 87.8 | 43.1 | 65.9 | 31.3 | 1.1 |
 
 *Note that using FP16 may lead to a slight difference in AP, in this case less than 0.01.

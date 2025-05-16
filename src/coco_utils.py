@@ -129,9 +129,12 @@ def compute_COCO_metrics(predictions, labels, cocoann_file):
                 x1, y1, x2, y2 = box.tolist()
             else:
                 x1, y1, x2, y2 = box
+            image_id = gt_label["image_id"]
+            if isinstance(image_id, list):
+                image_id = image_id[0]
             coco_predictions.append(
                 {
-                    "image_id": int(gt_label["image_id"]),
+                    "image_id": int(image_id),
                     "category_id": int(label),
                     "bbox": [
                         x1,

@@ -1,19 +1,19 @@
 import torch
 import argparse
 import time
+import json
+import os
 from tqdm import tqdm
 from transformers import AutoImageProcessor, AutoModelForObjectDetection
 from coco_utils import COCODataset
 from torch.utils.data import DataLoader
-from coco_utils import compute_COCO_metrics
+from coco_utils import compute_COCO_metrics, create_size_map
+from train import serialize_tensor_dict
+
+EVAL_RESULTS_JSONL = "eval_results.jsonl"
 
 
-def run_inference(
-    image_processor,
-    model,
-    dataset,
-    threshold,
-):
+def run_inference(image_processor, model, dataset, threshold, size_map, use_lowmem):
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     model.eval()
@@ -37,7 +37,7 @@ def run_inference(
         start_post = time.perf_counter()
         results = image_processor.post_process_object_detection(
             outputs,
-            target_sizes=batch_labels["size"],
+            target_sizes=[size_map[int(batch_labels["image_id"])]],
             threshold=threshold,
         )
         end_post = time.perf_counter()
@@ -46,8 +46,16 @@ def run_inference(
             total_forward += end_forward - start_forward
             total_post += end_post - start_post
 
-        predictions.extend(results)
-        labels.append(batch_labels)
+        if use_lowmem:
+            with open(EVAL_RESULTS_JSONL, "a") as f:
+                record = {
+                    "predictions": serialize_tensor_dict(results[0]),
+                    "labels": serialize_tensor_dict(batch_labels),
+                }
+                f.write(json.dumps(record) + "\n")
+        else:
+            predictions.extend(results)
+            labels.append(batch_labels)
 
     avg_forward_time = total_forward / (len(dataloader) - warmup_batches)
     avg_post_time = total_post / (len(dataloader) - warmup_batches)
@@ -56,6 +64,13 @@ def run_inference(
     )
     print(f"Average forward pass time: {avg_forward_time * 1000:.4f} ms")
     print(f"Average post-processing time: {avg_post_time * 1000:.4f} ms\n")
+
+    if use_lowmem:
+        with open(EVAL_RESULTS_JSONL, "r") as f:
+            for line in f:
+                rec = json.loads(line)
+                predictions.append(rec["predictions"])
+                labels.append(rec["labels"])
     return predictions, labels
 
 
@@ -77,11 +92,16 @@ def main(args):
         model=model,
         dataset=dataset,
         threshold=args.threshold,
+        size_map=create_size_map(cocoann_file=args.cocoann_file),
+        use_lowmem=args.lowmem,
     )
 
     _ = compute_COCO_metrics(
         predictions=predictions, labels=labels, cocoann_file=args.cocoann_file
     )
+
+    if os.path.exists(EVAL_RESULTS_JSONL):
+        os.remove(EVAL_RESULTS_JSONL)
 
 
 def parse_args():
@@ -107,6 +127,7 @@ def parse_args():
         default=0.01,
         help="Confidence threshold for predictions",
     )
+    parser.add_argument("--lowmem", action="store_true", help="Use low memory mode")
     return parser.parse_args()
 
 

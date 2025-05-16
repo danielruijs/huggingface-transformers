@@ -37,20 +37,21 @@ def run_inference(
     for i, batch in enumerate(tqdm(dataloader)):
         inputs = batch["pixel_values"]
         batch_labels = batch["labels"]
+        if use_fp16:
+            inputs = inputs.numpy().astype(np.float16)
+        else:
+            inputs = inputs.numpy()
 
         # Forward pass
         start_forward = time.perf_counter()
         with torch.no_grad():
-            if use_fp16:
-                inputs = inputs.numpy().astype(np.float16)
-            else:
-                inputs = inputs.numpy()
             raw_outputs = ort_session.run(None, {"pixel_values": inputs})
-            outputs = ModelOutput(
-                logits=torch.from_numpy(raw_outputs[0]),
-                pred_boxes=torch.from_numpy(raw_outputs[1]),
-            )
         end_forward = time.perf_counter()
+
+        outputs = ModelOutput(
+            logits=torch.from_numpy(raw_outputs[0]),
+            pred_boxes=torch.from_numpy(raw_outputs[1]),
+        )
 
         # Post-processing of outputs
         start_post = time.perf_counter()

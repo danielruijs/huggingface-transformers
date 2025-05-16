@@ -80,7 +80,7 @@ python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to
 # Inference
 To run inference, use the following command:
 ```bash
-python inference.py --model_dir path/to/onnx/model --img_dir path/to/images --output_dir path/to/output --threshold 0.5
+python inference.py --model_dir path/to/model --img_dir path/to/images --output_dir path/to/output --threshold 0.5
 ```
 - `--image_dir`: Directory of the images to be processed.
 - `--output_dir`: Directory where the images with predictions will be saved.
@@ -118,6 +118,7 @@ To export the model to the ONNX format, specify the model checkpoint directory a
 ```bash
 optimum-cli export onnx --model path/to/model/checkpoint --task object-detection --opset 17 --device cuda --dtype fp16 output/directory
 ```
+The `--dtype fp16` flag can be omitted if you want to export the model in FP32.
 
 ## Evaluation
 

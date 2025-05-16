@@ -15,15 +15,18 @@ class ModelOutput:
     pred_boxes: torch.Tensor
 
 
-def run_inference(image_processor, ort_session, image, threshold):
+def run_inference(image_processor, ort_session, image, threshold, use_fp16):
     inputs = image_processor(images=image, return_tensors="pt")
 
     pixel_values = inputs["pixel_values"]
 
+    if use_fp16:
+        pixel_values = pixel_values.numpy().astype(np.float16)
+    else:
+        pixel_values = pixel_values.numpy()
+
     with torch.no_grad():
-        raw_outputs = ort_session.run(
-            None, {"pixel_values": pixel_values.numpy().astype(np.float16)}
-        )
+        raw_outputs = ort_session.run(None, {"pixel_values": pixel_values})
         outputs = ModelOutput(
             logits=torch.from_numpy(raw_outputs[0]),
             pred_boxes=torch.from_numpy(raw_outputs[1]),
@@ -93,7 +96,13 @@ def main(args):
 
     for img_path in image_paths:
         image = Image.open(img_path).convert("RGB")
-        results = run_inference(image_processor, ort_session, image, args.threshold)
+        results = run_inference(
+            image_processor=image_processor,
+            ort_session=ort_session,
+            image=image,
+            threshold=args.threshold,
+            use_fp16=args.fp16,
+        )
         save_path = os.path.join(args.output_dir, os.path.basename(img_path))
         annotate_and_save(image, results, save_path, classes)
 
@@ -124,6 +133,7 @@ def parse_args():
         default=0.5,
         help="Confidence threshold for predictions",
     )
+    parser.add_argument("--fp16", action="store_true", help="Use FP16 precision")
     return parser.parse_args()
 
 

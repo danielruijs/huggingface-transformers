@@ -5,8 +5,11 @@ from PIL import Image, ImageDraw, ImageFont
 from transformers import AutoImageProcessor, AutoModelForObjectDetection
 
 
-def run_inference(image_processor, model, image, threshold):
+def run_inference(image_processor, model, image, threshold, use_fp16):
     inputs = image_processor(images=image, return_tensors="pt").to(model.device)
+
+    if use_fp16:
+        inputs = {k: v.half() for k, v in inputs.items()}
 
     with torch.no_grad():
         outputs = model(**inputs)
@@ -55,6 +58,9 @@ def main(args):
     model = AutoModelForObjectDetection.from_pretrained(args.model_dir).to(device)
     classes = model.config.id2label
 
+    if args.fp16:
+        model.half()
+
     image_paths = [
         os.path.join(args.img_dir, img_file)
         for img_file in os.listdir(args.img_dir)
@@ -64,7 +70,13 @@ def main(args):
     model.eval()
     for img_path in image_paths:
         image = Image.open(img_path).convert("RGB")
-        results = run_inference(image_processor, model, image, args.threshold)
+        results = run_inference(
+            image_processor=image_processor,
+            model=model,
+            image=image,
+            threshold=args.threshold,
+            use_fp16=args.fp16,
+        )
         save_path = os.path.join(args.output_dir, os.path.basename(img_path))
         annotate_and_save(image, results, save_path, classes)
 
@@ -92,6 +104,7 @@ def parse_args():
         default=0.5,
         help="Confidence threshold for predictions",
     )
+    parser.add_argument("--fp16", action="store_true", help="Use FP16 precision")
     return parser.parse_args()
 
 

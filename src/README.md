@@ -80,11 +80,12 @@ python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to
 # Inference
 To run inference, use the following command:
 ```bash
-python inference.py --model_dir path/to/model --img_dir path/to/images --output_dir path/to/output --threshold 0.5
+python inference.py --model_dir path/to/model --img_dir path/to/images --output_dir path/to/output --threshold 0.5 --fp16
 ```
 - `--image_dir`: Directory of the images to be processed.
 - `--output_dir`: Directory where the images with predictions will be saved.
 - `--threshold`: Confidence threshold for predictions. Default is 0.5.
+- `--fp16`: Runs the model in FP16 mode.
 
 # ONNX and TensorRT
 
@@ -136,8 +137,9 @@ python onnx/evaluation.py --model_dir path/to/onnx/model --cache_dir path/to/cac
 
 To run inference with TensorRT, run the following command:
 ```bash
-python onnx/inference.py --model_dir path/to/onnx/model --cache_dir path/to/cache --img_dir path/to/images --output_dir path/to/output --threshold 0.5
+python onnx/inference.py --model_dir path/to/onnx/model --cache_dir path/to/cache --img_dir path/to/images --output_dir path/to/output --threshold 0.5 --fp16
 ```
 - `--image_dir`: Directory of the images to be processed.
 - `--output_dir`: Directory where the images with predictions will be saved.
 - `--threshold`: Confidence threshold for predictions. Default is 0.5.
+- `--fp16`: Runs the model in FP16 mode. Must be set to the same value as the one used during export.

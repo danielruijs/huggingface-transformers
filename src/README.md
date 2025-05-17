@@ -70,11 +70,11 @@ rm -f train.log && nohup sh schedule_training.sh config_directory >> train.log 2
 # Evaluation
 To evaluate the model, run the evaluation script:
 ```bash
-python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to/coco/annotations.json --img_dir path/to/images --threshold 0.01 --fp16 --lowmem
+python evaluation.py --model_dir path/to/model/checkpoint --cocoann_file path/to/coco/annotations.json --img_dir path/to/images --threshold 0.01 --precision fp32 --lowmem
 ```
 - `--image_dir`: May be omitted if the annotation file contains full paths to the images.
 - `--threshold`: Confidence threshold for predictions. Default is 0.01.
-- `--fp16`: Runs the model in FP16 mode. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets).
+- `--precision`: Sets the precision for evaluation. Options are `fp32`, `fp16` or `amp`. Default is `fp32`. Note that using `fp16` or `amp` may lead to slightly lower AP (less than 0.01 with the example datasets).
 - `--lowmem`: Reduces memory usage during evaluation. This may slow down the process but is useful if memory is limited.
 
 # Inference
@@ -85,7 +85,7 @@ python inference.py --model_dir path/to/model --img_dir path/to/images --output_
 - `--image_dir`: Directory of the images to be processed.
 - `--output_dir`: Directory where the images with predictions will be saved.
 - `--threshold`: Confidence threshold for predictions. Default is 0.5.
-- `--fp16`: Runs the model in FP16 mode.
+- `--fp16`: Runs the model with FP16 precision.
 
 # ONNX and TensorRT
 
@@ -130,7 +130,7 @@ python onnx/evaluation.py --model_dir path/to/onnx/model --cache_dir path/to/cac
 - `--cache_dir`: Directory where the model engine is cached. The first time the model is run, the engine will be created and saved in this directory. Note that this can take some time.
 - `--image_dir`: May be omitted if the annotation file contains full paths to the images.
 - `--threshold`: Sets the confidence threshold for predictions. Default is 0.01.
-- `--fp16`: Runs the model in FP16 mode. Must be set to the same value as the one used during export. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets).
+- `--fp16`: Runs the model with FP16 precision. Must be set to the same value as the one used during export. Note that this may lead to slightly lower AP (less than 0.01 with the example datasets).
 - `--lowmem`: Reduces memory usage during evaluation. This may slow down the process but is useful if memory is limited.
 
 ## Inference
@@ -142,4 +142,4 @@ python onnx/inference.py --model_dir path/to/onnx/model --cache_dir path/to/cach
 - `--image_dir`: Directory of the images to be processed.
 - `--output_dir`: Directory where the images with predictions will be saved.
 - `--threshold`: Confidence threshold for predictions. Default is 0.5.
-- `--fp16`: Runs the model in FP16 mode. Must be set to the same value as the one used during export.
+- `--fp16`: Runs the model with FP16 precision. Must be set to the same value as the one used during export.

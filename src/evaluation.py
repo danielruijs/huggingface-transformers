@@ -14,7 +14,7 @@ EVAL_RESULTS_JSONL = "eval_results.jsonl"
 
 
 def run_inference(
-    image_processor, model, dataset, threshold, size_map, use_fp16, use_lowmem
+    image_processor, model, dataset, threshold, size_map, precision, use_lowmem
 ):
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
@@ -27,15 +27,22 @@ def run_inference(
     warmup_batches = 5  # Number of batches to not include in timing
     for i, batch in enumerate(tqdm(dataloader)):
         inputs = batch["pixel_values"].to(model.device)
-        if use_fp16:
+        if precision == "fp16":
             inputs = inputs.half()
         batch_labels = batch["labels"]
 
         # Forward pass
-        start_forward = time.perf_counter()
-        with torch.no_grad():
-            outputs = model(inputs)
-        end_forward = time.perf_counter()
+        if precision == "amp":
+            start_forward = time.perf_counter()
+            with torch.amp.autocast(model.device.type):
+                with torch.no_grad():
+                    outputs = model(inputs)
+            end_forward = time.perf_counter()
+        else:
+            start_forward = time.perf_counter()
+            with torch.no_grad():
+                outputs = model(inputs)
+            end_forward = time.perf_counter()
 
         # Post-processing of outputs
         start_post = time.perf_counter()
@@ -85,7 +92,7 @@ def main(args):
     image_processor = AutoImageProcessor.from_pretrained(args.model_dir)
     model = AutoModelForObjectDetection.from_pretrained(args.model_dir).to(device)
 
-    if args.fp16:
+    if args.precision == "fp16":
         model.half()
 
     dataset = COCODataset(
@@ -100,7 +107,7 @@ def main(args):
         dataset=dataset,
         threshold=args.threshold,
         size_map=create_size_map(cocoann_file=args.cocoann_file),
-        use_fp16=args.fp16,
+        precision=args.precision,
         use_lowmem=args.lowmem,
     )
 
@@ -135,7 +142,13 @@ def parse_args():
         default=0.01,
         help="Confidence threshold for predictions",
     )
-    parser.add_argument("--fp16", action="store_true", help="Use FP16 precision")
+    parser.add_argument(
+        "--precision",
+        type=str,
+        default="fp32",
+        choices=["fp32", "fp16", "amp"],
+        help="Precision options",
+    )
     parser.add_argument("--lowmem", action="store_true", help="Use low memory mode")
     return parser.parse_args()
 

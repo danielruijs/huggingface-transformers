@@ -25,7 +25,7 @@ source .venv/bin/activate
 
 Install the required packages:
 ```bash
-pip install transformers[torch] pycocotools scipy tensorboard albumentations
+pip install transformers[torch] pycocotools scipy tensorboard albumentations tabulate
 ```
 
 # Example datasets
@@ -76,9 +76,15 @@ The following tables summarizes the models´ performance on the test sets of the
 
 ## Dataset 2, 1920x1080 images
 
-| Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms) | Inference Time (ms)<br>FP16* | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
-|-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+| Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms) | Inference Time (ms)<br>AMP* | Inference Time (ms)<br>FP16* | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
+|-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
 |RT-DETRv2 (20)|
-|`rtdetr_v2_r18vd`| 0.592 | 0.065 | 0.544 | 0.651 | 87.8 | 43.1 | 65.9 | 31.3 | 1.1 |
+|`rtdetr_v2_r18vd`| 0.592 | 0.065 | 0.544 | 0.651 | 87.8 | 57.7 | 43.1 | 65.9 | 31.3 | 1.1 |
 
-*Note that using FP16 may lead to a slight difference in AP, in this case less than 0.01.
+*Note that using AMP or FP16 may lead to a slight difference in AP, in this case less than 0.01.
+
+The following table summarizes the performance of RT-DETRv2, when trained with the [official implementation](https://github.com/lyuwenyu/RT-DETR) for 20 epochs.
+
+| Variant<br> |    AP   |   APs   |   APm   |   APl   | Inference Time (ms) | Inference Time (ms)<br>AMP* | Inference Time (ms)<br>FP16* | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
+|-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+| RT-DETRv2-S<br>(rtdetr_v2_r18vd) | 0.803 | 0.196 | 0.786 | 0.846 | | 56.6 | | | | 0.9 |

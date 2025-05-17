@@ -1,7 +1,9 @@
+import itertools
 import os
 import json
-from PIL import Image
 import numpy as np
+from PIL import Image
+from tabulate import tabulate
 from torch.utils.data import Dataset
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -111,6 +113,41 @@ def get_classes_from_coco(cocoann_file):
     return classes
 
 
+def per_class_AP_table(coco_eval, class_names):
+    columns = 6
+    headers = ["class", "AP"]
+    per_class_AP = {}
+
+    # dimension of precisions: [TxRxKxAxM]
+    # precision has dims (iou, recall, cls, area range, max dets)
+    precisions = coco_eval.eval["precision"]
+    assert len(class_names) == precisions.shape[2]
+
+    for idx, name in enumerate(class_names):
+        # area range index 0: all area ranges
+        # max dets index -1: typically 100 per image
+        precision = precisions[:, :, idx, 0, -1]
+        precision = precision[precision > -1]
+        ap = np.mean(precision) if precision.size else float("nan")
+        per_class_AP[name] = float(ap * 100)
+
+    num_cols = min(columns, len(per_class_AP) * len(headers))
+    result_pair = [x for pair in per_class_AP.items() for x in pair]
+    row_pair = itertools.zip_longest(
+        *[result_pair[i::num_cols] for i in range(num_cols)]
+    )
+
+    table_headers = headers * (num_cols // len(headers))
+    table = tabulate(
+        row_pair,
+        tablefmt="pipe",
+        floatfmt=".3f",
+        headers=table_headers,
+        numalign="left",
+    )
+    return table
+
+
 def compute_COCO_metrics(predictions, labels, cocoann_file):
     """
     Compute COCO metrics for the predictions.
@@ -153,6 +190,11 @@ def compute_COCO_metrics(predictions, labels, cocoann_file):
     coco_eval.evaluate()
     coco_eval.accumulate()
     coco_eval.summarize()
+
+    cats = sorted(coco_gt.dataset["categories"], key=lambda c: c["id"])
+    class_names = [c["name"] for c in cats]
+    AP_table = per_class_AP_table(coco_eval, class_names=class_names)
+    print(AP_table)
 
     # Return metrics
     return {

@@ -72,7 +72,7 @@ The following tables summarizes the models´ performance on the test sets of the
 |`yolos-small`| 0.579 | 0.150 | 0.520 | 0.823 | 10.4 | | | 8.9 | 49.5 |
 |`yolos-base`| 0.681 | 0.256 | 0.584 | 0.887 | 11.9 | | | 9.9 | 132.2 |
 
-*Note that using FP16 may lead to a slight difference in AP, in this case less than 0.01.
+*Note that using AMP or FP16 may lead to a slight difference in AP, in this case less than 0.01.
 
 The following table summarizes the performance of RT-DETRv2, when trained with the [official implementation](https://github.com/lyuwenyu/RT-DETR) for 30 epochs.
 

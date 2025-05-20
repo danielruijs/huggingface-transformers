@@ -1,6 +1,8 @@
 # Huggingface Transformers
 
-This repository demonstrates how to use the [Huggingface Transformers library](https://huggingface.co/docs/transformers/en/index) for object detection. Specifically it focuses on finetuning models on custom datasets. Currently, the following models have been tested but all transformers object detection models should work:
+This repository demonstrates how to use the [Huggingface Transformers library](https://huggingface.co/docs/transformers/en/index) for object detection. Specifically it focuses on finetuning models on custom datasets. The repository provides training, evaluation, and inference scripts which can be found in the `src` directory. The `src/onnx` directory contains instructions for exporting the models to the ONNX format and running evaluation and inference with TensorRT.
+
+Currently, the following models have been tested but all transformers object detection models should work:
 
 - [Conditional DETR](https://huggingface.co/docs/transformers/model_doc/conditional_detr)
 - [D-FINE](https://huggingface.co/docs/transformers/main/en/model_doc/d_fine)
@@ -54,14 +56,10 @@ The following tables summarizes the models´ performance on the test sets of the
 
 | Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms)<br> | Inference Time (ms)<br>AMP* | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
 |-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-|Conditional DETR (50)|
-|`conditional-detr-resnet-50`| 0.363 | 0.158 | 0.278 | 0.514 | 30.2 | | | | 0.8 |
 |D-FINE (50)|
 |`dfine-small-obj365`|
 |Deformable DETR (50)|
 |`deformable-detr`| 0.699 | 0.337 | 0.553 | 0.849 | 38.8 | | | | 16.5 |
-| DETR (-)|
-|`facebook/detr-resnet-50`|
 |RT-DETRv2 (30)|
 |`rtdetr_v2_r18vd`| 0.302 | 0.102 | 0.345 | 0.427 | 20.1 | 27.4 | 8.3 | 7.6 | 0.8 |
 |`rtdetr_v2_r34vd`| 0.557 | 0.237 | 0.510 | 0.780 | 25.2 | | 12.2 | 7.8 | 0.8 |

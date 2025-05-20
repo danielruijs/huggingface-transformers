@@ -10,5 +10,5 @@ fi
 
 for config in "$CONFIG_DIR"/*.yaml; do
     echo "Running training with config: $config"
-    python -u train.py --config "$config" --name test
+    python -u train.py --config "$config" --name "$config"
 done

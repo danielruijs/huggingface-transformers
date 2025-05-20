@@ -1,6 +1,6 @@
 # Huggingface Transformers
 
-This repository demonstrates how to use the [Huggingface Transformers library](https://huggingface.co/docs/transformers/en/index) for object detection. Specifically it focuses on finetuning models on custom datasets. The repository provides training, evaluation, and inference scripts which can be found in the `src` directory. The `src/onnx` directory contains instructions for exporting the models to the ONNX format and running evaluation and inference with TensorRT.
+This repository demonstrates how to use the [Huggingface Transformers library](https://huggingface.co/docs/transformers/en/index) for object detection. Specifically it focuses on finetuning models on custom datasets. The repository provides training, evaluation, and inference scripts which can be found in the [src](src) directory. The [src/onnx](src/onnx) directory contains instructions for exporting the models to the ONNX format and running evaluation and inference with TensorRT.
 
 Currently, the following models have been tested but all transformers object detection models should work:
 

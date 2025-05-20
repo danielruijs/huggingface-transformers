@@ -77,6 +77,9 @@ The following table summarizes the performance of RT-DETRv2, when trained with t
 | Variant<br> |    AP   |   APs   |   APm   |   APl   | Inference Time (ms) | Inference Time (ms)<br>AMP* | Inference Time (ms)<br>FP16* | Post-processing time (ms)<br> |
 |-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
 | RT-DETRv2-S<br>(rtdetr_v2_r18vd) | 0.790 | 0.564 | 0.780 | 0.899 | | 27.5 | | 0.5 |
+| RT-DETRv2-M*<br>(rtdetr_v2_r34vd) | 0.813 | 0.611 | 0.775 | 0.914 | | 33.2 | | 0.5 |
+| RT-DETRv2-M<br>(rtdetr_v2_r50vd) | 0.808 | 0.592 | 0.791 | 0.915 | | 35.5 | | 0.5 |
+| RT-DETRv2-L<br>(rtdetr_v2_r50vd) | 0.817 | 0.627 | 0.785 | 0.910 | | 41.9 | | 0.5 |
 
 ## Dataset 2, 1920x1080 images
 

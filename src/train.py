@@ -222,6 +222,16 @@ def main(args, config):
     )
     model.config.id2label = {i: cls for i, cls in enumerate(classes)}
 
+    # for name, param in model.named_parameters():
+    #     if "backbone" in name:
+    #         param.requires_grad = False
+    #         print(f"Freezing {name}")
+
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Total parameters: {total_params:,}")
+    print(f"Trainable parameters: {trainable_params:,}")
+
     # Save the image processor
     image_processor.save_pretrained(best_model_dir)
 
@@ -260,6 +270,7 @@ def main(args, config):
         num_train_epochs=config["num_train_epochs"],
         per_device_train_batch_size=config["per_device_train_batch_size"],
         per_device_eval_batch_size=config["per_device_eval_batch_size"],
+        dataloader_num_workers=config["dataloader_num_workers"],
         output_dir=output_dir_run,
         logging_strategy="steps",
         logging_steps=config["logging_steps"],
@@ -277,6 +288,12 @@ def main(args, config):
         eval_do_concat_batches=False,
         save_safetensors=config.get("save_safetensors", True),
         batch_eval_metrics=batch_eval_metrics,
+        max_grad_norm=config["max_grad_norm"],
+        lr_scheduler_type=config["lr_scheduler_type"],
+        lr_scheduler_kwargs={"num_cycles": config.get("num_cycles", 1)},
+        warmup_steps=config["warmup_steps"],
+        weight_decay=config["weight_decay"],
+        learning_rate=config["learning_rate"],
     )
 
     # Create Trainer
@@ -317,7 +334,7 @@ def main(args, config):
                 size_map=create_size_map(cocoann_file=test_ann),
             )
         else:
-            partial(
+            trainer.compute_metrics = partial(
                 compute_metrics,
                 image_processor=image_processor,
                 cocoann_file=test_ann,

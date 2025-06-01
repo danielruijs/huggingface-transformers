@@ -173,6 +173,88 @@ class AugmentationSwitcher(TrainerCallback):
         print("\nTransforms:", self.dataset.transforms)
 
 
+class TrainEvaluationCallback(TrainerCallback):
+    """Callback to evaluate on training dataset after each epoch."""
+
+    def __init__(self, train_dataset, image_processor, train_ann):
+        self.train_dataset = train_dataset
+        self.image_processor = image_processor
+        self.train_ann = train_ann
+        self.size_map = create_size_map(cocoann_file=train_ann)
+        self.trainer = None
+
+    def on_epoch_end(self, args, state, control, **kwargs):
+        # Save original compute_metrics and eval_dataset
+        original_compute_metrics = self.trainer.compute_metrics
+        original_eval_dataset = self.trainer.eval_dataset
+
+        # Set up compute_metrics for training dataset
+        if args.batch_eval_metrics:
+            self.trainer.compute_metrics = partial(
+                compute_metrics_batch,
+                image_processor=self.image_processor,
+                cocoann_file=self.train_ann,
+                size_map=self.size_map,
+            )
+        else:
+            self.trainer.compute_metrics = partial(
+                compute_metrics,
+                image_processor=self.image_processor,
+                cocoann_file=self.train_ann,
+            )
+
+        # Temporarily switch eval_dataset to training dataset
+        self.trainer.eval_dataset = self.train_dataset
+
+        # Run evaluation
+        self.trainer.evaluate(metric_key_prefix="train")
+
+        # Restore original compute_metrics and eval_dataset
+        self.trainer.compute_metrics = original_compute_metrics
+        self.trainer.eval_dataset = original_eval_dataset
+
+        control.should_evaluate = True
+
+        return control
+
+
+class CustomTrainer(Trainer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.current_loss_dict = None
+
+    def compute_loss(
+        self, model, inputs, return_outputs=False, num_items_in_batch=None
+    ):
+        """
+        Override compute_loss to store individual losses from loss_dict.
+        """
+        outputs = model(**inputs)
+        loss = outputs.loss if hasattr(outputs, "loss") else outputs.get("loss")
+
+        self.current_loss_dict = {}
+        for key, value in outputs.loss_dict.items():
+            self.current_loss_dict[key] = value.item()
+
+        return (loss, outputs) if return_outputs else loss
+
+    def log(self, logs, start_time=None):
+        """
+        Override log method to add individual losses when regular logging happens.
+        """
+        # Only log individual losses during training, not during evaluation
+        if self.current_loss_dict is not None and not any(
+            key.startswith(("eval_", "test_", "train_")) for key in logs.keys()
+        ):
+            for key, value in self.current_loss_dict.items():
+                logs[f"train_{key}"] = value
+
+        self.current_loss_dict = None
+
+        # Call parent log method which handles TensorBoard logging
+        super().log(logs)
+
+
 def main(args, config):
     checkpoint = config["checkpoint"]
 
@@ -215,17 +297,19 @@ def main(args, config):
     image_processor = AutoImageProcessor.from_pretrained(
         checkpoint,
         do_resize=True,
+        do_normalize=True,
         size={"width": config["image_width"], "height": config["image_height"]},
     )
     model = AutoModelForObjectDetection.from_pretrained(
         checkpoint, num_labels=len(classes), ignore_mismatched_sizes=True
     )
     model.config.id2label = {i: cls for i, cls in enumerate(classes)}
+    model.config.label2id = {cls: i for i, cls in enumerate(classes)}
 
-    # for name, param in model.named_parameters():
-    #     if "backbone" in name:
-    #         param.requires_grad = False
-    #         print(f"Freezing {name}")
+    # Disable denoising
+    if config["disable_denoising"]:
+        model.config.num_denoising = 0
+        print("Denoising disabled")
 
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -290,14 +374,13 @@ def main(args, config):
         batch_eval_metrics=batch_eval_metrics,
         max_grad_norm=config["max_grad_norm"],
         lr_scheduler_type=config["lr_scheduler_type"],
-        lr_scheduler_kwargs={"num_cycles": config.get("num_cycles", 1)},
         warmup_steps=config["warmup_steps"],
         weight_decay=config["weight_decay"],
         learning_rate=config["learning_rate"],
     )
 
     # Create Trainer
-    trainer = Trainer(
+    trainer = CustomTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
@@ -310,6 +393,13 @@ def main(args, config):
             )
         ],
     )
+    # train_eval_callback = TrainEvaluationCallback(
+    #     train_dataset=train_dataset,
+    #     image_processor=image_processor,
+    #     train_ann=train_ann,
+    # )
+    # train_eval_callback.trainer = trainer
+    # trainer.add_callback(train_eval_callback)
 
     # Start training
     trainer.train()

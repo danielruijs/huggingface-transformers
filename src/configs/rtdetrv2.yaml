@@ -2,11 +2,14 @@
 # Note: All paths are relative to the training script's directory.
 
 # Model checkpoint. For available checkpoints see https://huggingface.co/PekingU
-# checkpoint: "PekingU/rtdetr_v2_r18vd"
+checkpoint: "PekingU/rtdetr_v2_r18vd"
 # checkpoint: "PekingU/rtdetr_v2_r34vd"
 # checkpoint: "PekingU/rtdetr_v2_r50vd"
-checkpoint: "PekingU/rtdetr_v2_r101vd"
+# checkpoint: "PekingU/rtdetr_v2_r101vd"
 
+batch_eval_metrics: True
+
+disable_denoising: True
 
 # Dataset paths
 # ann is the COCO annototation file and img is the image directory
@@ -19,16 +22,23 @@ test_ann: "../data/test/cocoann.json" # Optional, if not provided, validation se
 test_img: "../data/test/images" # Optional, if not provided, validation set will be used for final evaluation
 
 # Training parameters
-image_width: 416 # Needs to be a multiple of 32
-image_height: 416 # Needs to be a multiple of 32
+image_width: 416 # Needs to be a multiple of 32, change in augmentations as well!
+image_height: 416 # Needs to be a multiple of 32, change in augmentations as well!
 per_device_train_batch_size: 16
-per_device_eval_batch_size: 16
+per_device_eval_batch_size: 4
+dataloader_num_workers: 2
 num_train_epochs: 30
+
+learning_rate: 0.0001
+weight_decay: 0.0001 # The weight decay to apply (if not zero) to all layers except all bias and LayerNorm weights in AdamW optimizer.
+max_grad_norm: 0.1 # Maximum gradient norm (for gradient clipping).
+lr_scheduler_type: "constant_with_warmup" # The scheduler type to use. See https://huggingface.co/docs/transformers/main_classes/optimizer_schedules#transformers.SchedulerType
+warmup_steps: 200
 
 output_dir: "./checkpoints" # Directory to save the model checkpoints.
 save_total_limit: 1 # Limit the total amount of checkpoints.
 logging_dir: "./logs" # TensorBoard logging directory.
-logging_steps: 0.01 # Number of update steps between two logs. If smaller than 1, will be interpreted as ratio of total training steps.
+logging_steps: 100 # Number of update steps between two logs. If smaller than 1, will be interpreted as ratio of total training steps.
 
 fp16: True # Whether to use fp16 16-bit (mixed) precision training instead of 32-bit training.
 fp16_full_eval: True # Whether to use full float16 evaluation instead of 32-bit. This will be faster and save memory but can harm metric values.
@@ -36,11 +46,11 @@ fp16_full_eval: True # Whether to use full float16 evaluation instead of 32-bit.
 # See https://albumentations.ai/docs/api-reference/ for more augmentations
 no_aug_epochs: 5 # Number of epochs at the end without augmentation
 augmentations:
+  - name: ColorJitter
+    params: { brightness: [0.875, 1.125], contrast: [0.5, 1.5], saturation: [0.5, 1.5], hue: [-0.05, 0.05], p: 0.5}
+
   - name: RandomSizedBBoxSafeCrop
-    params: { height: 416, width: 416, p: 0.1 }
+    params: { height: 416, width: 416, p: 0.8 }
 
-  - name: MotionBlur
-    params: { blur_limit: [3, 3], p: 0.1 }
-
-  - name: CoarseDropout
-    params: { p: 0.1 }
+  - name: Affine
+    params: { scale: [0.7, 1], translate_percent: 0.01, rotate: 0, shear: 0, keep_ratio: True, p: 0.5 }

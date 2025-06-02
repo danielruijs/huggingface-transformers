@@ -56,19 +56,11 @@ The following tables summarizes the models´ performance on the test sets of the
 
 | Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms)<br> | Inference Time (ms)<br>AMP* | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
 |-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-|D-FINE (50)|
-|`dfine-small-obj365`|
-|Deformable DETR (50)|
-|`deformable-detr`| 0.699 | 0.337 | 0.553 | 0.849 | 38.8 | | | | 16.5 |
 |RT-DETRv2 (30)|
-|`rtdetr_v2_r18vd`| 0.302 | 0.102 | 0.345 | 0.427 | 20.1 | 27.4 | 8.3 | 7.6 | 0.8 |
-|`rtdetr_v2_r34vd`| 0.557 | 0.237 | 0.510 | 0.780 | 25.2 | | 12.2 | 7.8 | 0.8 |
-|`rtdetr_v2_r50vd`| 0.746 | 0.401 | 0.808 | 0.891 | 32.4 | | 19.2 | 7.5 | 0.8 |
-|`rtdetr_v2_r101vd`| 0.760 | 0.447 | 0.834 | 0.901 | 48.8 | | 28.9 | 10.3 | 0.8 | 
-|YOLOS (100)|
-|`yolos-tiny`| 0.557 | 0.163 | 0.441 | 0.755 | 9.2 | | | 5.7 | 0.8 |
-|`yolos-small`| 0.579 | 0.150 | 0.520 | 0.823 | 10.4 | | | 8.9 | 49.5 |
-|`yolos-base`| 0.681 | 0.256 | 0.584 | 0.887 | 11.9 | | | 9.9 | 132.2 |
+|`rtdetr_v2_r18vd`| 0.801 | 0.553 | 0.831 | 0.908 | 20.1 | 27.4 | 8.3 | 7.6 | 0.8 |
+|`rtdetr_v2_r34vd`|  |  |  |  | 25.2 | | 12.2 | 7.8 | 0.8 |
+|`rtdetr_v2_r50vd`|  |  |  |  | 32.4 | | 19.2 | 7.5 | 0.8 |
+|`rtdetr_v2_r101vd`|  |  |  |  | 48.8 | | 28.9 | 10.3 | 0.8 | 
 
 *Note that using AMP or FP16 may lead to a slight difference in AP, in this case less than 0.01.
 
@@ -85,8 +77,8 @@ The following table summarizes the performance of RT-DETRv2, when trained with t
 
 | Checkpoint<br>(training epochs) |    AP   |   APs   |   APm   |   APl   | Inference Time (ms) | Inference Time (ms)<br>AMP* | Inference Time (ms)<br>FP16* | Inference Time (ms)<br>(TensorRT) | Inference Time (ms)<br>(TensorRT, FP16*) | Post-processing time (ms)<br> |
 |-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-|RT-DETRv2 (20)|
-|`rtdetr_v2_r18vd`| 0.592 | 0.065 | 0.544 | 0.651 | 87.8 | 57.7 | 43.1 | 65.9 | 31.3 | 1.1 |
+|RT-DETRv2 (30)|
+|`rtdetr_v2_r18vd`| 0.801 | 0.220 | 0.787 | 0.824 | 87.8 | 57.7 | 43.1 | 65.9 | 31.3 | 1.1 |
 
 *Note that using AMP or FP16 may lead to a slight difference in AP, in this case less than 0.01.
 

@@ -51,6 +51,7 @@ The best model from training is saved in the `output_dir` directory specified in
 ## Tips for Training
 
 - If you get OOM errors during evaluation, try setting `batch_eval_metrics: True` in the config file.
+- Disabling denoising by setting `disable_denoising: True` in the config file yielded significantly better results on the two example datasets.
 
 ## Logging
 

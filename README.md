@@ -79,6 +79,7 @@ The following table summarizes the performance of RT-DETRv2, when trained with t
 |-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
 |RT-DETRv2 (30)|
 |`rtdetr_v2_r18vd`| 0.801 | 0.220 | 0.787 | 0.824 | 87.8 | 57.7 | 43.1 | 65.9 | 31.3 | 1.1 |
+|`rtdetr_v2_r34vd`| 0.788 | 0.235 | 0.774 | 0.820 | 124.0 | 86.9 | 55.2 | 96.0 | 42.6 | 1.1 |
 
 *Note that using AMP or FP16 may lead to a slight difference in AP, in this case less than 0.01.
 

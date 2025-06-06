@@ -53,6 +53,13 @@ def run_inference(
             pred_boxes=torch.from_numpy(raw_outputs[1]),
         )
 
+        if (
+            torch.isnan(outputs.logits).any().item()
+            or torch.isnan(outputs.pred_boxes).any().item()
+        ):
+            print("NaN detected in model outputs, exiting.")
+            return None, None
+
         # Post-processing of outputs
         start_post = time.perf_counter()
         results = image_processor.post_process_object_detection(
@@ -125,9 +132,10 @@ def main(args):
         use_lowmem=args.lowmem,
     )
 
-    _ = compute_COCO_metrics(
-        predictions=predictions, labels=labels, cocoann_file=args.cocoann_file
-    )
+    if predictions is not None and labels is not None:
+        compute_COCO_metrics(
+            predictions=predictions, labels=labels, cocoann_file=args.cocoann_file
+        )
 
     if os.path.exists(EVAL_RESULTS_JSONL):
         os.remove(EVAL_RESULTS_JSONL)

@@ -60,7 +60,7 @@ The following tables summarizes the models´ performance on the test sets of the
 |`rtdetr_v2_r18vd`| 0.801 | 0.553 | 0.831 | 0.908 | 20.1 | 27.4 | 8.3 | 7.6 | 0.8 |
 |`rtdetr_v2_r34vd`| 0.809 | 0.576 | 0.845 | 0.911 | 25.2 | 34.2 | 12.2 | 7.8 | 0.8 |
 |`rtdetr_v2_r50vd`| 0.798 | 0.498 | 0.834 | 0.903 | 32.4 | 41.9 | 19.2 | 7.5 | 0.8 |
-|`rtdetr_v2_r101vd`|  |  |  |  | 48.8 | | 28.9 | 10.3 | 0.8 | 
+|`rtdetr_v2_r101vd`| 0.815 | 0.587 | 0.841 | 0.919 | 46.3 | 52.1 | 28.9 | 7.9 | 0.8 |
 
 *Note that using AMP or FP16 may lead to a slight difference in AP, in this case less than 0.01.
 

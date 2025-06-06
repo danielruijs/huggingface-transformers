@@ -51,7 +51,8 @@ The best model from training is saved in the `output_dir` directory specified in
 ## Tips for Training
 
 - If you get OOM errors during evaluation, try setting `batch_eval_metrics: True` in the config file.
-- Disabling denoising by setting `disable_denoising: True` in the config file yielded significantly better results on the two example datasets.
+- Disabling denoising by setting `disable_denoising: True` in the config file yielded significantly better results for RT-DETRv2 on the two example datasets.
+- If you encounter nan errors during training, try setting `fp16: False` and `fp16_full_eval: False` in the config file.
 
 ## Logging
 
